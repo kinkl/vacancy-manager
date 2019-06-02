@@ -27,3 +27,5 @@ hs_err_pid*
 /.project
 /.settings/
 
+/last_response.json
+/saved_vacancies/

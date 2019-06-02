@@ -20,6 +20,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import me.anonymoussoftware.vacancymanager.App;
 import me.anonymoussoftware.vacancymanager.VacancyManager;
@@ -101,6 +102,8 @@ public class MainFrame extends JFrame implements VacancySearchListener {
 	private JFileChooser createFileChooser() {
 		JFileChooser chooser = new JFileChooser();
 		chooser.setCurrentDirectory(new File("."));
+		chooser.setFileFilter(new FileNameExtensionFilter("JSON files", "json"));
+		chooser.setAcceptAllFileFilterUsed(false);
 		return chooser;
 	}
 
@@ -108,7 +111,12 @@ public class MainFrame extends JFrame implements VacancySearchListener {
 		JFileChooser chooser = createFileChooser();
 		int result = chooser.showSaveDialog(this);
 		if (result == JFileChooser.APPROVE_OPTION) {
-			this.vacancyManager.saveVacanciesToFile(chooser.getSelectedFile(), //
+			File selectedFile = chooser.getSelectedFile();
+			String selectedFilePath = selectedFile.getPath();
+			if (!selectedFilePath.toString().endsWith(".json")) {
+				selectedFile = new File(selectedFilePath + ".json");
+			}
+			this.vacancyManager.saveVacanciesToFile(selectedFile, //
 					this::showSuccessfullyLoadedVacanciesMessageDialog, //
 					this::showUnableToSaveVacanciesToFile);
 		}
