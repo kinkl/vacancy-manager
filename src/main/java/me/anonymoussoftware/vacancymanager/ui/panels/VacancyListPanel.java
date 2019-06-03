@@ -21,107 +21,108 @@ import me.anonymoussoftware.vacancymanager.api.result.VacancyListResult;
 import me.anonymoussoftware.vacancymanager.model.Vacancy;
 
 @SuppressWarnings("serial")
-public class VacancyListPanel extends JPanel implements VacancyManager.VacancyListChangeListener, VacancySearchListener {
+public class VacancyListPanel extends JPanel
+        implements VacancyManager.VacancyListChangeListener, VacancySearchListener {
 
-	private final DefaultListModel<Vacancy> vacancyListModel;
+    private final DefaultListModel<Vacancy> vacancyListModel;
 
-	private final VacancyManager vacancyManager = App.getBean(VacancyManager.class);
+    private final VacancyManager vacancyManager = App.getBean(VacancyManager.class);
 
-	private final JLabel label;
-	
-	private final JList<Vacancy> vacanciesList;
+    private final JLabel label;
 
-	public VacancyListPanel() {
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    private final JList<Vacancy> vacanciesList;
 
-		this.label = new JLabel("Vacancies:");
-		add(this.label);
+    public VacancyListPanel() {
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-		this.vacancyListModel = new DefaultListModel<>();
-		this.vacanciesList = new JList<>(this.vacancyListModel);
-		this.vacanciesList.setCellRenderer(new VacancyCellRenderer());
-		this.vacanciesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		this.vacanciesList.addListSelectionListener(
-				e -> this.vacancyManager.setSelectedVacancy(this.vacanciesList.getSelectedValue()));
-		JScrollPane vacancyListScrollPane = new JScrollPane(this.vacanciesList);
-		add(vacancyListScrollPane);
-	}
+        this.label = new JLabel("Vacancies:");
+        add(this.label);
 
-	@Override
-	public void addNotify() {
-		super.addNotify();
-		this.vacancyManager.addVacancyChangeListener(this);
-		this.vacancyManager.addVacancySearchListener(this);
-	}
+        this.vacancyListModel = new DefaultListModel<>();
+        this.vacanciesList = new JList<>(this.vacancyListModel);
+        this.vacanciesList.setCellRenderer(new VacancyCellRenderer());
+        this.vacanciesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        this.vacanciesList.addListSelectionListener(
+                e -> this.vacancyManager.setSelectedVacancy(this.vacanciesList.getSelectedValue()));
+        JScrollPane vacancyListScrollPane = new JScrollPane(this.vacanciesList);
+        add(vacancyListScrollPane);
+    }
 
-	@Override
-	public void removeNotify() {
-		this.vacancyManager.removeVacancySearchListener(this);
-		this.vacancyManager.removeVacancyListChangeListener(this);
-		super.removeNotify();
-	}
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        this.vacancyManager.addVacancyChangeListener(this);
+        this.vacancyManager.addVacancySearchListener(this);
+    }
 
-	@Override
-	public void onVacancyListChange(VacancyListChangeListener.VacancyListChangeReason reason) {
-		EventQueue.invokeLater(() -> {
-			VacancyListResult vacancies = this.vacancyManager.getAvailableVacancies();
-			int selectedIndex = this.vacanciesList.getSelectedIndex();
-			this.vacancyListModel.clear();
-			vacancies.getVacancies().stream().forEach(this.vacancyListModel::addElement);
-			if (reason == VacancyListChangeListener.VacancyListChangeReason.VACANCY_BAN && selectedIndex >= 0) {
-				int vacancyListSize = this.vacanciesList.getModel().getSize();
-				if (selectedIndex < vacancyListSize) {
-					this.vacanciesList.setSelectedIndex(selectedIndex);
-				} else {
-					this.vacanciesList.setSelectedIndex(vacancyListSize - 1);
-				}
-			}
-			this.label.setText("Vacancies: " + vacancies.getFound() + " from " + vacancies.getTotal());
-		});
-	}
-	
-	private class VacancyCellRenderer extends JLabel implements ListCellRenderer<Vacancy> {
+    @Override
+    public void removeNotify() {
+        this.vacancyManager.removeVacancySearchListener(this);
+        this.vacancyManager.removeVacancyListChangeListener(this);
+        super.removeNotify();
+    }
 
-		@Override
-		public Component getListCellRendererComponent(JList<? extends Vacancy> list, Vacancy value, int index,
-				boolean isSelected, boolean cellHasFocus) {
-			Vacancy selectedValue = list.getSelectedValue();
-			Color backgroundColor;
-			Color foregroundColor = list.getForeground();
-			if (selectedValue != null && selectedValue.getId() == value.getId()) {
-				backgroundColor = list.getSelectionBackground();
-				foregroundColor = list.getSelectionForeground();
-			} else if (value.isBanned()) {
-				backgroundColor = Color.RED;
-				foregroundColor = Color.WHITE;
-			} else {
-				backgroundColor = list.getBackground();
-			}
-			setBackground(backgroundColor);
-			setForeground(foregroundColor);
-			setOpaque(true);
-			setFont(list.getFont());
-			setText(value.getName() + " (" + value.getEmployer().getName() + ")");
-			return this;
-		}
-		
-	}
+    @Override
+    public void onVacancyListChange(VacancyListChangeListener.VacancyListChangeReason reason) {
+        EventQueue.invokeLater(() -> {
+            VacancyListResult vacancies = this.vacancyManager.getAvailableVacancies();
+            int selectedIndex = this.vacanciesList.getSelectedIndex();
+            this.vacancyListModel.clear();
+            vacancies.getVacancies().stream().forEach(this.vacancyListModel::addElement);
+            if (reason == VacancyListChangeListener.VacancyListChangeReason.VACANCY_BAN && selectedIndex >= 0) {
+                int vacancyListSize = this.vacanciesList.getModel().getSize();
+                if (selectedIndex < vacancyListSize) {
+                    this.vacanciesList.setSelectedIndex(selectedIndex);
+                } else {
+                    this.vacanciesList.setSelectedIndex(vacancyListSize - 1);
+                }
+            }
+            this.label.setText("Vacancies: " + vacancies.getFound() + " from " + vacancies.getTotal());
+        });
+    }
 
-	@Override
-	public void onVacancyPageSuccessfulLoad(int percentage) {
-		if (percentage == 0) {
-			EventQueue.invokeLater(this.vacancyListModel::clear);
-		}
-	}
+    private class VacancyCellRenderer extends JLabel implements ListCellRenderer<Vacancy> {
 
-	@Override
-	public void onStartVacancyPageLoad(String url) {
-		
-	}
+        @Override
+        public Component getListCellRendererComponent(JList<? extends Vacancy> list, Vacancy value, int index,
+                boolean isSelected, boolean cellHasFocus) {
+            Vacancy selectedValue = list.getSelectedValue();
+            Color backgroundColor;
+            Color foregroundColor = list.getForeground();
+            if (selectedValue != null && selectedValue.getId() == value.getId()) {
+                backgroundColor = list.getSelectionBackground();
+                foregroundColor = list.getSelectionForeground();
+            } else if (value.isBanned()) {
+                backgroundColor = Color.RED;
+                foregroundColor = Color.WHITE;
+            } else {
+                backgroundColor = list.getBackground();
+            }
+            setBackground(backgroundColor);
+            setForeground(foregroundColor);
+            setOpaque(true);
+            setFont(list.getFont());
+            setText(value.getName() + " (" + value.getEmployer().getName() + ")");
+            return this;
+        }
 
-	@Override
-	public void onSearchFinish(int loaded, int total) {
-		
-	}
+    }
+
+    @Override
+    public void onVacancyPageSuccessfulLoad(int percentage) {
+        if (percentage == 0) {
+            EventQueue.invokeLater(this.vacancyListModel::clear);
+        }
+    }
+
+    @Override
+    public void onStartVacancyPageLoad(String url) {
+
+    }
+
+    @Override
+    public void onSearchFinish(int loaded, int total) {
+
+    }
 
 }

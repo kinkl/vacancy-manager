@@ -24,30 +24,31 @@ import me.anonymoussoftware.vacancymanager.model.Vacancy;
 @Log4j
 @Service
 public class FileVacancyService {
-	
-	public boolean saveVacancies(VacancyListResult vacancies, File file) {
-		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
-			JSONObject obj = new JSONObject();
-			obj.put("items", vacancies.getVacancies().stream().map(Vacancy::toJson).collect(Collectors.toList()));
+
+    public boolean saveVacancies(VacancyListResult vacancies, File file) {
+        try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
+            JSONObject obj = new JSONObject();
+            obj.put("items", vacancies.getVacancies().stream().map(Vacancy::toJson).collect(Collectors.toList()));
 //			obj.put("banned_items", vacancies.getBannedVacancies().stream().map(Vacancy::toJson).collect(Collectors.toList()));
-			pw.write(obj.toString());
-		} catch (FileNotFoundException e) {
-			log.error("Error saving vacancies", e);
-			return false;
-		}
-		return true;
-	}
-	
-	public VacancyListResult openVacancies(File file) {
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-			String str = reader.lines().collect(Collectors.joining());
-			JSONObject obj = new JSONObject(str);
-			JSONArray jsonArray = obj.getJSONArray("items");
-			List<Vacancy> vacancies = new ArrayList<>();
-			for (int i = 0; i < jsonArray.length(); i++) {
-				Vacancy vacancy = Vacancy.fromJson(jsonArray.getJSONObject(i));
-				vacancies.add(vacancy);
-			}
+            pw.write(obj.toString());
+        } catch (FileNotFoundException e) {
+            log.error("Error saving vacancies", e);
+            return false;
+        }
+        return true;
+    }
+
+    public VacancyListResult openVacancies(File file) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+            String str = reader.lines().collect(Collectors.joining());
+            JSONObject obj = new JSONObject(str);
+            JSONArray jsonArray = obj.getJSONArray("items");
+            List<Vacancy> vacancies = new ArrayList<>();
+            for (int i = 0; i < jsonArray.length(); i++) {
+                Vacancy vacancy = Vacancy.fromJson(jsonArray.getJSONObject(i));
+                vacancies.add(vacancy);
+            }
 //			jsonArray = obj.optJSONArray("banned_items");
 //			List<Vacancy> bannedVacancies = new ArrayList<>();
 //			if (jsonArray != null) {
@@ -56,11 +57,11 @@ public class FileVacancyService {
 //					bannedVacancies.add(vacancy);
 //				}
 //			}
-			return new VacancyListResult(vacancies.size(), vacancies.size(), vacancies);
-		} catch (IOException e) {
-			log.error("Error opening vacancies", e);
-		}
-		return null;
-	}
-	
+            return new VacancyListResult(vacancies.size(), vacancies.size(), vacancies);
+        } catch (IOException e) {
+            log.error("Error opening vacancies", e);
+        }
+        return null;
+    }
+
 }
