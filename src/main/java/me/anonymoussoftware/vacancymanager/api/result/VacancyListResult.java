@@ -10,7 +10,6 @@ import me.anonymoussoftware.vacancymanager.model.Vacancy;
 @AllArgsConstructor
 public class VacancyListResult {
 
-    private final int found;
     private final int total;
     private final List<Vacancy> vacancies;
 

@@ -47,7 +47,7 @@ public class HttpVacancyService {
                 Vacancy vacancy = Vacancy.fromJson(obj);
                 result.add(vacancy);
             }
-            return new VacancyListResult(result.size(), jsonObject.getInt("found"), result);
+            return new VacancyListResult(jsonObject.getInt("found"), result);
 
         } catch (Exception e) {
             log.fatal("An exception has occured", e);

@@ -77,7 +77,13 @@ public class VacancyListPanel extends JPanel
                     this.vacanciesList.setSelectedIndex(vacancyListSize - 1);
                 }
             }
-            this.label.setText("Vacancies: " + vacancies.getFound() + " from " + vacancies.getTotal());
+            long bannedVacancyCount = vacancies.getVacancies().stream().filter(Vacancy::isBanned).count();
+            String bannedVacancyCountString = "";
+            if (bannedVacancyCount > 0) {
+                bannedVacancyCountString = " (banned " + bannedVacancyCount + ") ";
+            }
+            this.label.setText("Vacancies: " + (vacancies.getVacancies().size() - bannedVacancyCount)
+                    + bannedVacancyCountString + " from " + vacancies.getTotal());
         });
     }
 

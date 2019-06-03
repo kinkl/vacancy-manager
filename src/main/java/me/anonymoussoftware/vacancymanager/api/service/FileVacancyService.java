@@ -57,7 +57,7 @@ public class FileVacancyService {
 //					bannedVacancies.add(vacancy);
 //				}
 //			}
-            return new VacancyListResult(vacancies.size(), vacancies.size(), vacancies);
+            return new VacancyListResult(vacancies.size(), vacancies);
         } catch (IOException e) {
             log.error("Error opening vacancies", e);
         }

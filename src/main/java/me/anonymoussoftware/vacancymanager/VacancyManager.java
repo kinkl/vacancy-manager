@@ -45,7 +45,7 @@ public class VacancyManager implements DisposableBean {
 
     private Vacancy selectedVacancy;
 
-    private VacancyListResult vacancies = new VacancyListResult(0, 0, new ArrayList<>());
+    private VacancyListResult vacancies = new VacancyListResult(0, new ArrayList<>());
 
     private final Map<String, Integer> CITIES = new LinkedHashMap<>();
 
@@ -129,7 +129,7 @@ public class VacancyManager implements DisposableBean {
                 currentPage++;
                 fireVacancySearchProgress((int) ((loaded + 0.0) / vacanciesToLoad * 100));
             } while (loaded < vacanciesToLoad);
-            result = new VacancyListResult(loaded, total, vacancies);
+            result = new VacancyListResult(total, vacancies);
             loadVacancies(result);
             fireVacancySearchProgress(100);
             fireVacancySearchFinish(loaded, total);
@@ -159,7 +159,7 @@ public class VacancyManager implements DisposableBean {
                 .sorted(Comparator.comparing(Vacancy::isBanned) //
                         .thenComparing(Vacancy::getName).thenComparing(v -> v.getEmployer().getName()))
                 .collect(Collectors.toList());
-        return new VacancyListResult(newVacancyList.size(), this.vacancies.getTotal(), newVacancyList);
+        return new VacancyListResult(this.vacancies.getTotal(), newVacancyList);
     }
 
     public void setSelectedVacancy(Vacancy vacancy) {
