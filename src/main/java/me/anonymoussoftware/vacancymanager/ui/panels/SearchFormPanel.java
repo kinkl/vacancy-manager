@@ -30,7 +30,7 @@ public class SearchFormPanel extends JPanel implements VacancyManager.VacancySea
 		this.queryTextField = new JTextField("Java");
 		add(queryTextField);
 
-		this.searchButton = new JButton("Run new search (test enablement)");
+		this.searchButton = new JButton("Run new search");
 		this.searchButton.addActionListener(this::onSearchButtonAction);
 		add(this.searchButton);
 		
