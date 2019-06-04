@@ -71,7 +71,7 @@ public class VacancyListPanel extends JPanel
             vacancies.getVacancies().stream().forEach(this.vacancyListModel::addElement);
             if (reason == VacancyListChangeListener.VacancyListChangeReason.VACANCY_BAN && selectedIndex >= 0) {
                 int vacancyListSize = this.vacanciesList.getModel().getSize();
-                this.vacanciesList.setSelectedIndex(Math.min(selectedIndex, vacancyListSize - 1));
+                this.vacanciesList.setSelectedIndex(Math.min(selectedIndex, Math.max(vacancyListSize - 1, 0)));
             }
             long bannedVacancyCount = vacancies.getVacancies().stream().filter(Vacancy::isBanned).count();
             String bannedVacancyCountString = "";
