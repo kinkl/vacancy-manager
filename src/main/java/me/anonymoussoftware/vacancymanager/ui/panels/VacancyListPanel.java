@@ -22,7 +22,7 @@ import me.anonymoussoftware.vacancymanager.model.Vacancy;
 
 @SuppressWarnings("serial")
 public class VacancyListPanel extends JPanel
-        implements VacancyManager.VacancyListChangeListener, VacancySearchListener {
+        implements VacancyListChangeListener, VacancySearchListener {
 
     private final DefaultListModel<Vacancy> vacancyListModel;
 
@@ -73,13 +73,19 @@ public class VacancyListPanel extends JPanel
                 int vacancyListSize = this.vacanciesList.getModel().getSize();
                 this.vacanciesList.setSelectedIndex(Math.min(selectedIndex, Math.max(vacancyListSize - 1, 0)));
             }
-            long bannedVacancyCount = vacancies.getVacancies().stream().filter(Vacancy::isBanned).count();
+            long notBannedVacancyCount = vacancies.getVacancies().stream() //
+                    .filter(v -> !v.isBanned()) //
+                    .map(Vacancy::getEmployer) //
+                    .filter(e -> !this.vacancyManager.isEmployerBanned(e.getId())) //
+                    .count();
             String bannedVacancyCountString = "";
+            long bannedVacancyCount = vacancies.getVacancies().size() - notBannedVacancyCount;
             if (bannedVacancyCount > 0) {
                 bannedVacancyCountString = " (banned " + bannedVacancyCount + ") ";
             }
-            this.label.setText("Vacancies: " + (vacancies.getVacancies().size() - bannedVacancyCount)
-                    + bannedVacancyCountString + " from " + vacancies.getTotal());
+            String text = String.format("Vacancies: %d%s from %d", notBannedVacancyCount, bannedVacancyCountString,
+                    vacancies.getTotal());
+            this.label.setText(text);
         });
     }
 
@@ -96,6 +102,9 @@ public class VacancyListPanel extends JPanel
                 foregroundColor = list.getSelectionForeground();
             } else if (value.isBanned()) {
                 backgroundColor = Color.RED;
+                foregroundColor = Color.WHITE;
+            } else if (VacancyListPanel.this.vacancyManager.isEmployerBanned(value.getEmployer().getId())) {
+                backgroundColor = Color.DARK_GRAY;
                 foregroundColor = Color.WHITE;
             } else {
                 backgroundColor = list.getBackground();

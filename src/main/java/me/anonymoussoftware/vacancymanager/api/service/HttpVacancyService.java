@@ -10,6 +10,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,8 +27,21 @@ public class HttpVacancyService {
 
     private static final String HOST = "https://api.hh.ru/vacancies";
 
-    public String getRequestVacancyUrl(String text, int selectedCityCode, int page) {
-        return HOST + "?text=" + text + "&area=" + selectedCityCode + "&page=" + page + "&per_page=100";
+    public String getRequestVacancyUrl(String text, int selectedCityCode, int page, Set<Integer> bannedEmployers) {
+        text = text.trim() //
+                .replace(" ", "%20") //
+                .replace("\t", "%20") //
+                .replace("\r", "%20") //
+                .replace("\n", "%20");
+        StringBuilder sb = new StringBuilder(text);
+        String bannedEmployerListQueryPart = bannedEmployers.stream() //
+                .map(i -> "NOT%20!COMPANY_ID:" + i) //
+                .collect(Collectors.joining("%20and%20"));
+        if (!bannedEmployerListQueryPart.isEmpty()) {
+            sb.append("%20and%20") //
+                    .append(bannedEmployerListQueryPart);
+        }
+        return String.format("%s?text=%s&area=%d&page=%d&per_page=100", HOST, sb.toString(), selectedCityCode, page);
     }
 
     public VacancyListResult requestVacancies(String queryUrl) {

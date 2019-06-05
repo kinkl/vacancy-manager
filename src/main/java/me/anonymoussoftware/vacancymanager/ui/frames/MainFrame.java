@@ -25,6 +25,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import me.anonymoussoftware.vacancymanager.App;
 import me.anonymoussoftware.vacancymanager.VacancyManager;
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancySearchListener;
+import me.anonymoussoftware.vacancymanager.ui.panels.BannedEmployerListPanel;
 import me.anonymoussoftware.vacancymanager.ui.panels.SearchFormPanel;
 import me.anonymoussoftware.vacancymanager.ui.panels.VacancyDescriptionPanel;
 import me.anonymoussoftware.vacancymanager.ui.panels.VacancyListPanel;
@@ -37,6 +38,8 @@ public class MainFrame extends JFrame implements VacancySearchListener {
     private static final int FRAME_HEIGHT = 700;
 
     private final VacancyListPanel vacancyListPanel;
+
+    private final BannedEmployerListPanel bannedEmployerListPanel;
 
     private final JLabel statusBarLabel;
 
@@ -54,7 +57,10 @@ public class MainFrame extends JFrame implements VacancySearchListener {
         add(new SearchFormPanel(), BorderLayout.NORTH);
 
         this.vacancyListPanel = new VacancyListPanel();
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.vacancyListPanel,
+        this.bannedEmployerListPanel = new BannedEmployerListPanel();
+        JSplitPane innerSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, this.vacancyListPanel,
+                this.bannedEmployerListPanel);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, innerSplitPane,
                 new VacancyDescriptionPanel());
         add(splitPane, BorderLayout.CENTER);
 

@@ -24,6 +24,8 @@ public class VacancyDescriptionPanel extends JPanel implements VacancySelectionL
 
     private final JButton banVacancyButton;
 
+    private final JButton banEmployerButton;
+
     public VacancyDescriptionPanel() {
         setLayout(new BorderLayout());
 
@@ -39,8 +41,10 @@ public class VacancyDescriptionPanel extends JPanel implements VacancySelectionL
         this.banVacancyButton.addActionListener(e -> this.vacancyManager.banSelectedVacancy());
         buttonPanel.add(this.banVacancyButton);
 
-        JButton banCompanyButton = new JButton("Ban company");
-        buttonPanel.add(banCompanyButton);
+        this.banEmployerButton = new JButton("Ban company");
+        this.banEmployerButton.addActionListener(e -> this.vacancyManager.banSelectedVacancyEmployer());
+        this.banEmployerButton.setEnabled(false);
+        buttonPanel.add(banEmployerButton);
 
         add(buttonPanel, BorderLayout.EAST);
     }
@@ -66,7 +70,9 @@ public class VacancyDescriptionPanel extends JPanel implements VacancySelectionL
                 .orElse("");
         EventQueue.invokeLater(() -> {
             this.vacancyDescriptionTextArea.setText(text);
-            this.banVacancyButton.setEnabled(vacancy != null);
+            this.banVacancyButton.setEnabled(vacancy != null && !vacancy.isBanned()); 
+            this.banEmployerButton.setEnabled(
+                    vacancy != null && !this.vacancyManager.isEmployerBanned(vacancy.getEmployer().getId()));
         });
     }
 }
