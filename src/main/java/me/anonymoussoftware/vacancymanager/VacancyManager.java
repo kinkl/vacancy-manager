@@ -60,7 +60,7 @@ public class VacancyManager implements DisposableBean {
         CITIES.put("Moscow", 1);
     }
 
-    public void addVacancyChangeListener(VacancyListChangeListener listener) {
+    public void addVacancyListChangeListener(VacancyListChangeListener listener) {
         this.vacancyChangeListeners.add(listener);
     }
 

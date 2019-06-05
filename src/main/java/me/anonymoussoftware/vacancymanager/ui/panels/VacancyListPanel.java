@@ -51,7 +51,7 @@ public class VacancyListPanel extends JPanel
     @Override
     public void addNotify() {
         super.addNotify();
-        this.vacancyManager.addVacancyChangeListener(this);
+        this.vacancyManager.addVacancyListChangeListener(this);
         this.vacancyManager.addVacancySearchListener(this);
     }
 
