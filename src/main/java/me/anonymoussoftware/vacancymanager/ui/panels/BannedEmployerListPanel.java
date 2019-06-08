@@ -1,9 +1,11 @@
 package me.anonymoussoftware.vacancymanager.ui.panels;
 
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.util.List;
 
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -36,6 +38,15 @@ public class BannedEmployerListPanel extends JPanel implements BannedEmployerLis
         this.bannedEmployerListModel = new DefaultListModel<>();
         this.bannedEmployerList = new JList<>(this.bannedEmployerListModel);
         this.bannedEmployerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        this.bannedEmployerList.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+                    boolean cellHasFocus) {
+                Component component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                setText(((Employer) value).getName());
+                return component;
+            }
+        });
         JScrollPane vacancyListScrollPane = new JScrollPane(this.bannedEmployerList);
         add(vacancyListScrollPane);
     }
