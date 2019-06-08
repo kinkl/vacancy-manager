@@ -80,11 +80,11 @@ public class MainFrame extends JFrame implements VacancySearchListener {
         JMenuBar menubar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
 
-        JMenuItem saveFileMenuItem = new JMenuItem("Save as...");
+        JMenuItem saveFileMenuItem = new JMenuItem("Export vacancies...");
         saveFileMenuItem.addActionListener(this::onSaveFileMenuItemAction);
         fileMenu.add(saveFileMenuItem);
 
-        JMenuItem openFileMenuItem = new JMenuItem("Open...");
+        JMenuItem openFileMenuItem = new JMenuItem("Import vacancies...");
         openFileMenuItem.addActionListener(this::onOpenFileMenuItemAction);
         fileMenu.add(openFileMenuItem);
 
