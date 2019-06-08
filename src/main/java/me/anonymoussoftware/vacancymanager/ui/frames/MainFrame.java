@@ -80,13 +80,25 @@ public class MainFrame extends JFrame implements VacancySearchListener {
         JMenuBar menubar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
 
-        JMenuItem importVacanciesMenuItem = new JMenuItem("Export vacancies...");
+        JMenu vacanciesMenu = new JMenu("Vacancies");
+        JMenuItem importVacanciesMenuItem = new JMenuItem("Export...");
         importVacanciesMenuItem.addActionListener(this::onImportVacanciesMenuItemAction);
-        fileMenu.add(importVacanciesMenuItem);
+        vacanciesMenu.add(importVacanciesMenuItem);
 
-        JMenuItem exportVacanciesMenuItem = new JMenuItem("Import vacancies...");
+        JMenuItem exportVacanciesMenuItem = new JMenuItem("Import...");
         exportVacanciesMenuItem.addActionListener(this::onExportVacanciesMenuItemAction);
-        fileMenu.add(exportVacanciesMenuItem);
+        vacanciesMenu.add(exportVacanciesMenuItem);
+        fileMenu.add(vacanciesMenu);
+
+        JMenu employersMenu = new JMenu("Employers");
+        JMenuItem importEmployersMenuItem = new JMenuItem("Export...");
+        importEmployersMenuItem.addActionListener(this::onImportEmployersMenuItemAction);
+        employersMenu.add(importEmployersMenuItem);
+
+        JMenuItem exportEmployersMenuItem = new JMenuItem("Import...");
+        exportEmployersMenuItem.addActionListener(this::onExportEmployersMenuItemAction);
+        employersMenu.add(exportEmployersMenuItem);
+        fileMenu.add(employersMenu);
 
         menubar.add(fileMenu);
         setJMenuBar(menubar);
@@ -136,6 +148,30 @@ public class MainFrame extends JFrame implements VacancySearchListener {
         }
     }
 
+    private void onImportEmployersMenuItemAction(ActionEvent e) {
+        JFileChooser chooser = createFileChooser();
+        int result = chooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = chooser.getSelectedFile();
+            String selectedFilePath = selectedFile.getPath();
+            if (!selectedFilePath.toString().endsWith(".json")) {
+                selectedFile = new File(selectedFilePath + ".json");
+            }
+            this.vacancyManager.importEmployers(selectedFile, //
+                    this::showSuccessfullyLoadedEmployersMessageDialog, //
+                    this::showUnableToSaveEmployersToFile);
+        }
+    }
+
+    private void onExportEmployersMenuItemAction(ActionEvent e) {
+        JFileChooser chooser = createFileChooser();
+        int result = chooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            this.vacancyManager.exportEmployers(chooser.getSelectedFile(), //
+                    this::showUnableToLoadEmployersFromFileMessageDialog);
+        }
+    }
+
     private void showUnableToLoadVacanciesFromFileMessageDialog() {
         JOptionPane.showMessageDialog(this, "Unable to load vacancies from file", "Error", JOptionPane.ERROR_MESSAGE);
     }
@@ -146,6 +182,19 @@ public class MainFrame extends JFrame implements VacancySearchListener {
     }
 
     private void showUnableToSaveVacanciesToFile() {
+        JOptionPane.showMessageDialog(this, "Unable to save employers to file", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showUnableToLoadEmployersFromFileMessageDialog() {
+        JOptionPane.showMessageDialog(this, "Unable to load employers from file", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showSuccessfullyLoadedEmployersMessageDialog() {
+        JOptionPane.showMessageDialog(this, "Employers are saved successfully", "Success",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void showUnableToSaveEmployersToFile() {
         JOptionPane.showMessageDialog(this, "Unable to save vacancies to file", "Error", JOptionPane.ERROR_MESSAGE);
     }
 

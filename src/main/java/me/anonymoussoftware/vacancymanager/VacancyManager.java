@@ -233,11 +233,42 @@ public class VacancyManager implements DisposableBean {
         return newVacancies;
     }
 
+    private void updateEmployersCache(List<Employer> bannedEmployers) {
+        for (Employer bannedEmployer : bannedEmployers) {
+            Employer cachedEmployer = this.employers.get(bannedEmployer.getId());
+            if (cachedEmployer == null) {
+                this.employers.put(bannedEmployer.getId(), bannedEmployer);
+            } else {
+                cachedEmployer.setBanned(true);
+            }
+        }
+        fireVacancyListChanged(VacancyListChangeListener.VacancyListChangeReason.TOTAL_RELOAD);
+        fireEmployerListChanged();
+    }
+
     public void exportVacancies(File file, Runnable failAction) {
         List<Vacancy> nonCachedVacancies = this.fileVacancyService.exportVacancies(file);
         if (nonCachedVacancies != null) {
             List<Vacancy> cachedResult = cacheVacancies(nonCachedVacancies);
             loadVacancies(cachedResult);
+        } else {
+            failAction.run();
+        }
+    }
+
+    public void importEmployers(File file, Runnable successAction, Runnable failAction) {
+        boolean success = this.fileVacancyService.importBannedEmployers(this.employers.values(), file);
+        if (success) {
+            successAction.run();
+        } else {
+            failAction.run();
+        }
+    }
+
+    public void exportEmployers(File file, Runnable failAction) {
+        List<Employer> nonCachedVacancies = this.fileVacancyService.exportBannedEmployers(file);
+        if (nonCachedVacancies != null) {
+            updateEmployersCache(nonCachedVacancies);
         } else {
             failAction.run();
         }
