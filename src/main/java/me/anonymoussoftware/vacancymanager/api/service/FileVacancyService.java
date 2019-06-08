@@ -18,17 +18,16 @@ import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.log4j.Log4j;
-import me.anonymoussoftware.vacancymanager.api.result.VacancyListResult;
 import me.anonymoussoftware.vacancymanager.model.Vacancy;
 
 @Log4j
 @Service
 public class FileVacancyService {
 
-    public boolean saveVacancies(VacancyListResult vacancies, File file) {
+    public boolean saveVacancies(List<Vacancy> vacancies, File file) {
         try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
             JSONObject obj = new JSONObject();
-            obj.put("items", vacancies.getVacancies().stream() //
+            obj.put("items", vacancies.stream() //
                     .map(v -> v.toJson(false)) //
                     .collect(Collectors.toList()));
             pw.write(obj.toString());
@@ -39,7 +38,7 @@ public class FileVacancyService {
         return true;
     }
 
-    public VacancyListResult openRawVacancies(File file) {
+    public List<Vacancy> openRawVacancies(File file) {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
             String str = reader.lines().collect(Collectors.joining());
@@ -50,7 +49,7 @@ public class FileVacancyService {
                 Vacancy vacancy = Vacancy.fromJson(jsonArray.getJSONObject(i));
                 vacancies.add(vacancy);
             }
-            return new VacancyListResult(vacancies.size(), vacancies);
+            return vacancies;
         } catch (IOException e) {
             log.error("Error opening vacancies", e);
         }

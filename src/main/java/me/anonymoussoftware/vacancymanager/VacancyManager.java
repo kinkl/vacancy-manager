@@ -18,7 +18,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import me.anonymoussoftware.vacancymanager.api.result.VacancyListResult;
 import me.anonymoussoftware.vacancymanager.api.service.FileVacancyService;
 import me.anonymoussoftware.vacancymanager.api.service.HttpVacancyService;
 import me.anonymoussoftware.vacancymanager.model.Employer;
@@ -49,7 +48,7 @@ public class VacancyManager implements DisposableBean {
 
     private Vacancy selectedVacancy;
 
-    private VacancyListResult vacancies = new VacancyListResult(0, new ArrayList<>());
+    private List<Vacancy> vacancies = new ArrayList<>();
 
     private Map<Integer, Employer> employers = new TreeMap<>();
 
@@ -120,8 +119,8 @@ public class VacancyManager implements DisposableBean {
         return this.selectedCityCode;
     }
 
-    private void loadVacancies(VacancyListResult vacancyListResult) {
-        this.vacancies = vacancyListResult;
+    private void loadVacancies(List<Vacancy> vacancies) {
+        this.vacancies = vacancies;
         fireVacancyListChanged(VacancyListChangeListener.VacancyListChangeReason.TOTAL_RELOAD);
         fireEmployerListChanged();
     }
@@ -137,9 +136,7 @@ public class VacancyManager implements DisposableBean {
     public void startVacanciesSearch(String searchText) {
         this.threadPool.submit(() -> {
             List<Vacancy> vacancies = new ArrayList<>();
-            VacancyListResult result = null;
             int currentPage = 0;
-            int loaded = 0;
             int total = 0;
             int vacanciesToLoad = 0;
             fireVacancySearchProgress(0);
@@ -151,18 +148,16 @@ public class VacancyManager implements DisposableBean {
                 String url = this.httpVacancyService.getRequestVacancyUrl(searchText, getSelectedCityCode(),
                         currentPage, bannedEmployers);
                 fireVacancyRequestPageStart(url);
-                result = cacheEmployers(this.httpVacancyService.requestVacancies(url));
-                vacancies.addAll(result.getVacancies());
+                HttpVacancyService.VacancyListResult result = this.httpVacancyService.requestVacancies(url);
+                vacancies.addAll(cacheEmployers(result.getVacancies()));
                 total = result.getTotal();
                 vacanciesToLoad = Math.min(total, VACANCY_COUNT_THRESHOLD);
-                loaded += result.getVacancies().size();
                 currentPage++;
-                fireVacancySearchProgress((int) ((loaded + 0.0) / vacanciesToLoad * 100));
-            } while (loaded < vacanciesToLoad);
-            result = new VacancyListResult(total, vacancies);
-            loadVacancies(result);
+                fireVacancySearchProgress((int) ((vacancies.size() + 0.0) / vacanciesToLoad * 100));
+            } while (vacancies.size() < vacanciesToLoad);
+            loadVacancies(vacancies);
             fireVacancySearchProgress(100);
-            fireVacancySearchFinish(loaded, total);
+            fireVacancySearchFinish(vacancies.size(), total);
         });
     }
 
@@ -184,14 +179,13 @@ public class VacancyManager implements DisposableBean {
         }
     }
 
-    public VacancyListResult getAvailableVacancies() {
-        List<Vacancy> newVacancyList = this.vacancies.getVacancies().stream() //
+    public List<Vacancy> getAvailableVacancies() {
+        return this.vacancies.stream() //
                 .sorted(Comparator.comparing(Vacancy::isBanned) //
                         .thenComparing(v -> v.getEmployer().isBanned()) //
                         .thenComparing(Vacancy::getName) //
                         .thenComparing(v -> v.getEmployer().getName()))
                 .collect(Collectors.toList());
-        return new VacancyListResult(this.vacancies.getTotal(), newVacancyList);
     }
 
     public List<Employer> getEmployers() {
@@ -219,8 +213,7 @@ public class VacancyManager implements DisposableBean {
         }
     }
 
-    private VacancyListResult cacheEmployers(VacancyListResult rawResult) {
-        List<Vacancy> rawVacancies = rawResult.getVacancies();
+    private List<Vacancy> cacheEmployers(List<Vacancy> rawVacancies) {
         List<Vacancy> newVacancies = new ArrayList<>();
         for (Vacancy rawVacancy : rawVacancies) {
             Employer rawEmployer = rawVacancy.getEmployer();
@@ -232,13 +225,13 @@ public class VacancyManager implements DisposableBean {
             newVacancies.add(new Vacancy(rawVacancy.getId(), rawVacancy.isBanned(), rawVacancy.getName(),
                     cachedEmployer, rawVacancy.getArea(), rawVacancy.getSnippet()));
         }
-        return new VacancyListResult(rawResult.getTotal(), newVacancies);
+        return newVacancies;
     }
 
     public void loadVacanciesFromFile(File file, Runnable failAction) {
-        VacancyListResult rawResult = this.fileVacancyService.openRawVacancies(file);
+        List<Vacancy> rawResult = this.fileVacancyService.openRawVacancies(file);
         if (rawResult != null) {
-            VacancyListResult result = cacheEmployers(rawResult);
+            List<Vacancy> result = cacheEmployers(rawResult);
             loadVacancies(result);
         } else {
             failAction.run();

@@ -3,6 +3,7 @@ package me.anonymoussoftware.vacancymanager.ui.panels;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -17,7 +18,6 @@ import me.anonymoussoftware.vacancymanager.App;
 import me.anonymoussoftware.vacancymanager.VacancyManager;
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancyListChangeListener;
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancySearchListener;
-import me.anonymoussoftware.vacancymanager.api.result.VacancyListResult;
 import me.anonymoussoftware.vacancymanager.model.Vacancy;
 
 @SuppressWarnings("serial")
@@ -64,26 +64,25 @@ public class VacancyListPanel extends JPanel implements VacancyListChangeListene
     @Override
     public void onVacancyListChange(VacancyListChangeListener.VacancyListChangeReason reason) {
         EventQueue.invokeLater(() -> {
-            VacancyListResult vacancies = this.vacancyManager.getAvailableVacancies();
+            List<Vacancy> vacancies = this.vacancyManager.getAvailableVacancies();
             int selectedIndex = this.vacanciesList.getSelectedIndex();
             this.vacancyListModel.clear();
-            vacancies.getVacancies().stream().forEach(this.vacancyListModel::addElement);
+            vacancies.stream().forEach(this.vacancyListModel::addElement);
             if (reason == VacancyListChangeListener.VacancyListChangeReason.VACANCY_BAN && selectedIndex >= 0) {
                 int vacancyListSize = this.vacanciesList.getModel().getSize();
                 this.vacanciesList.setSelectedIndex(Math.min(selectedIndex, Math.max(vacancyListSize - 1, 0)));
             }
-            long notBannedVacancyCount = vacancies.getVacancies().stream() //
+            long notBannedVacancyCount = vacancies.stream() //
                     .filter(v -> !v.isBanned()) //
                     .map(Vacancy::getEmployer) //
                     .filter(e -> !e.isBanned()) //
                     .count();
             String bannedVacancyCountString = "";
-            long bannedVacancyCount = vacancies.getVacancies().size() - notBannedVacancyCount;
+            long bannedVacancyCount = vacancies.size() - notBannedVacancyCount;
             if (bannedVacancyCount > 0) {
                 bannedVacancyCountString = " (banned " + bannedVacancyCount + ") ";
             }
-            String text = String.format("Vacancies: %d%s from %d", notBannedVacancyCount, bannedVacancyCountString,
-                    vacancies.getTotal());
+            String text = String.format("Vacancies: %d%s", notBannedVacancyCount, bannedVacancyCountString);
             this.label.setText(text);
         });
     }

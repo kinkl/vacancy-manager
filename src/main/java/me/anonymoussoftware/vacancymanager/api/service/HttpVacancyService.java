@@ -17,8 +17,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j;
-import me.anonymoussoftware.vacancymanager.api.result.VacancyListResult;
 import me.anonymoussoftware.vacancymanager.model.Vacancy;
 
 @Log4j
@@ -68,6 +69,15 @@ public class HttpVacancyService {
             log.fatal("An exception has occured", e);
             return null;
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class VacancyListResult {
+
+        private final int total;
+        private final List<Vacancy> vacancies;
+
     }
 
 }
