@@ -14,6 +14,7 @@ import me.anonymoussoftware.vacancymanager.App;
 import me.anonymoussoftware.vacancymanager.VacancyManager;
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancySelectionListener;
 import me.anonymoussoftware.vacancymanager.model.Vacancy;
+import me.anonymoussoftware.vacancymanager.model.aggregated.AggregatedVacancy;
 
 @SuppressWarnings("serial")
 public class VacancyDescriptionPanel extends JPanel implements VacancySelectionListener {
@@ -63,15 +64,16 @@ public class VacancyDescriptionPanel extends JPanel implements VacancySelectionL
 
     @Override
     public void onVacancySelection() {
-        Vacancy vacancy = this.vacancyManager.getSelectedVacancy();
+        AggregatedVacancy vacancy = this.vacancyManager.getSelectedVacancy();
         String text = Optional.ofNullable(vacancy) //
+                .map(AggregatedVacancy::getVacancy)
                 .map(Vacancy::getSnippet) //
                 .map(Object::toString) //
                 .orElse("");
         EventQueue.invokeLater(() -> {
             this.vacancyDescriptionTextArea.setText(text);
-            this.banVacancyButton.setEnabled(vacancy != null && !vacancy.isBanned());
-            this.banEmployerButton.setEnabled(vacancy != null && !vacancy.getEmployer().isBanned());
+            this.banVacancyButton.setEnabled(vacancy != null && !vacancy.getVacancy().isBanned());
+            this.banEmployerButton.setEnabled(vacancy != null && !vacancy.getVacancy().getEmployer().isBanned());
         });
     }
 }

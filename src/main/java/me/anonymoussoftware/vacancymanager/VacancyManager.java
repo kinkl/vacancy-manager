@@ -22,6 +22,7 @@ import me.anonymoussoftware.vacancymanager.api.service.FileVacancyService;
 import me.anonymoussoftware.vacancymanager.api.service.HttpVacancyService;
 import me.anonymoussoftware.vacancymanager.model.Employer;
 import me.anonymoussoftware.vacancymanager.model.Vacancy;
+import me.anonymoussoftware.vacancymanager.model.aggregated.AggregatedVacancy;
 
 @Service
 public class VacancyManager implements DisposableBean {
@@ -46,7 +47,7 @@ public class VacancyManager implements DisposableBean {
 
     private int selectedCityCode;
 
-    private Vacancy selectedVacancy;
+    private AggregatedVacancy selectedVacancy;
 
     private List<Vacancy> vacancies = new ArrayList<>();
 
@@ -104,12 +105,12 @@ public class VacancyManager implements DisposableBean {
     }
 
     public void banSelectedVacancy() {
-        this.selectedVacancy.setBanned(true);
+        this.selectedVacancy.getVacancy().setBanned(true);
         fireVacancyListChanged(VacancyListChangeListener.VacancyListChangeReason.VACANCY_BAN);
     }
 
     public void banSelectedVacancyEmployer() {
-        Employer employerToBan = this.selectedVacancy.getEmployer();
+        Employer employerToBan = this.selectedVacancy.getVacancy().getEmployer();
         this.employers.get(employerToBan.getId()).setBanned(true);
         fireVacancyListChanged(VacancyListChangeListener.VacancyListChangeReason.VACANCY_BAN);
         fireEmployerListChanged();
@@ -179,12 +180,16 @@ public class VacancyManager implements DisposableBean {
         }
     }
 
-    public List<Vacancy> getAvailableVacancies() {
-        return this.vacancies.stream() //
-                .sorted(Comparator.comparing(Vacancy::isBanned) //
-                        .thenComparing(v -> v.getEmployer().isBanned()) //
-                        .thenComparing(Vacancy::getName) //
-                        .thenComparing(v -> v.getEmployer().getName()))
+    public List<AggregatedVacancy> getAvailableVacancies() {
+        Map<Integer, List<Vacancy>> employerToVacancies = this.vacancies.stream()
+                .collect(Collectors.groupingBy((Vacancy v) -> v.getEmployer().getId()));
+        return this.vacancies.stream()
+                .map(v -> new AggregatedVacancy(v, employerToVacancies.get(v.getEmployer().getId()))) //
+                .sorted(Comparator.comparing((AggregatedVacancy v) -> v.getVacancy().isBanned()) //
+                        .thenComparing(v -> v.getVacancy().getEmployer().isBanned()) //
+                        .thenComparing(v -> -v.getEmployerVacancies().size()) //
+                        .thenComparing(v -> v.getVacancy().getEmployer().getName()) //
+                        .thenComparing(v -> v.getVacancy().getName()))
                 .collect(Collectors.toList());
     }
 
@@ -195,12 +200,12 @@ public class VacancyManager implements DisposableBean {
                 .collect(Collectors.toList());
     }
 
-    public void setSelectedVacancy(Vacancy vacancy) {
+    public void setSelectedVacancy(AggregatedVacancy vacancy) {
         this.selectedVacancy = vacancy;
         this.vacancySelectionListeners.stream().forEach(e -> e.onVacancySelection());
     }
 
-    public Vacancy getSelectedVacancy() {
+    public AggregatedVacancy getSelectedVacancy() {
         return this.selectedVacancy;
     }
 

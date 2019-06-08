@@ -18,18 +18,18 @@ import me.anonymoussoftware.vacancymanager.App;
 import me.anonymoussoftware.vacancymanager.VacancyManager;
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancyListChangeListener;
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancySearchListener;
-import me.anonymoussoftware.vacancymanager.model.Vacancy;
+import me.anonymoussoftware.vacancymanager.model.aggregated.AggregatedVacancy;
 
 @SuppressWarnings("serial")
 public class VacancyListPanel extends JPanel implements VacancyListChangeListener, VacancySearchListener {
 
-    private final DefaultListModel<Vacancy> vacancyListModel;
+    private final DefaultListModel<AggregatedVacancy> vacancyListModel;
 
     private final VacancyManager vacancyManager = App.getBean(VacancyManager.class);
 
     private final JLabel label;
 
-    private final JList<Vacancy> vacanciesList;
+    private final JList<AggregatedVacancy> vacanciesList;
 
     public VacancyListPanel() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -64,7 +64,7 @@ public class VacancyListPanel extends JPanel implements VacancyListChangeListene
     @Override
     public void onVacancyListChange(VacancyListChangeListener.VacancyListChangeReason reason) {
         EventQueue.invokeLater(() -> {
-            List<Vacancy> vacancies = this.vacancyManager.getAvailableVacancies();
+            List<AggregatedVacancy> vacancies = this.vacancyManager.getAvailableVacancies();
             int selectedIndex = this.vacanciesList.getSelectedIndex();
             this.vacancyListModel.clear();
             vacancies.stream().forEach(this.vacancyListModel::addElement);
@@ -73,8 +73,8 @@ public class VacancyListPanel extends JPanel implements VacancyListChangeListene
                 this.vacanciesList.setSelectedIndex(Math.min(selectedIndex, Math.max(vacancyListSize - 1, 0)));
             }
             long notBannedVacancyCount = vacancies.stream() //
-                    .filter(v -> !v.isBanned()) //
-                    .map(Vacancy::getEmployer) //
+                    .filter(v -> !v.getVacancy().isBanned()) //
+                    .map(v -> v.getVacancy().getEmployer()) //
                     .filter(e -> !e.isBanned()) //
                     .count();
             String bannedVacancyCountString = "";
@@ -87,21 +87,21 @@ public class VacancyListPanel extends JPanel implements VacancyListChangeListene
         });
     }
 
-    private class VacancyCellRenderer extends JLabel implements ListCellRenderer<Vacancy> {
+    private class VacancyCellRenderer extends JLabel implements ListCellRenderer<AggregatedVacancy> {
 
         @Override
-        public Component getListCellRendererComponent(JList<? extends Vacancy> list, Vacancy value, int index,
-                boolean isSelected, boolean cellHasFocus) {
-            Vacancy selectedValue = list.getSelectedValue();
+        public Component getListCellRendererComponent(JList<? extends AggregatedVacancy> list, AggregatedVacancy value,
+                int index, boolean isSelected, boolean cellHasFocus) {
+            AggregatedVacancy selectedValue = list.getSelectedValue();
             Color backgroundColor;
             Color foregroundColor = list.getForeground();
-            if (selectedValue != null && selectedValue.getId() == value.getId()) {
+            if (selectedValue != null && selectedValue.getVacancy().getId() == value.getVacancy().getId()) {
                 backgroundColor = list.getSelectionBackground();
                 foregroundColor = list.getSelectionForeground();
-            } else if (value.isBanned()) {
+            } else if (value.getVacancy().isBanned()) {
                 backgroundColor = Color.RED;
                 foregroundColor = Color.WHITE;
-            } else if (value.getEmployer().isBanned()) {
+            } else if (value.getVacancy().getEmployer().isBanned()) {
                 backgroundColor = Color.DARK_GRAY;
                 foregroundColor = Color.WHITE;
             } else {
@@ -111,7 +111,10 @@ public class VacancyListPanel extends JPanel implements VacancyListChangeListene
             setForeground(foregroundColor);
             setOpaque(true);
             setFont(list.getFont());
-            setText(value.getName() + " (" + value.getEmployer().getName() + ")");
+            setText(String.format("%s [%d] - %s", //
+                    value.getVacancy().getEmployer().getName(), //
+                    value.getEmployerVacancies().size(), //
+                    value.getVacancy().getName()));
             return this;
         }
 
