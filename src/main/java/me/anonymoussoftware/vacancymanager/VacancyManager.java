@@ -150,7 +150,7 @@ public class VacancyManager implements DisposableBean {
                         currentPage, bannedEmployers);
                 fireVacancyRequestPageStart(url);
                 HttpVacancyService.VacancyListResult result = this.httpVacancyService.requestVacancies(url);
-                vacancies.addAll(cacheEmployers(result.getVacancies()));
+                vacancies.addAll(cacheVacancies(result.getVacancies()));
                 total = result.getTotal();
                 vacanciesToLoad = Math.min(total, VACANCY_COUNT_THRESHOLD);
                 currentPage++;
@@ -209,8 +209,8 @@ public class VacancyManager implements DisposableBean {
         return this.selectedVacancy;
     }
 
-    public void saveVacanciesToFile(File file, Runnable successAction, Runnable failAction) {
-        boolean success = this.fileVacancyService.saveVacancies(this.vacancies, file);
+    public void importVacancies(File file, Runnable successAction, Runnable failAction) {
+        boolean success = this.fileVacancyService.importVacancies(this.vacancies, file);
         if (success) {
             successAction.run();
         } else {
@@ -218,7 +218,7 @@ public class VacancyManager implements DisposableBean {
         }
     }
 
-    private List<Vacancy> cacheEmployers(List<Vacancy> rawVacancies) {
+    private List<Vacancy> cacheVacancies(List<Vacancy> rawVacancies) {
         List<Vacancy> newVacancies = new ArrayList<>();
         for (Vacancy rawVacancy : rawVacancies) {
             Employer rawEmployer = rawVacancy.getEmployer();
@@ -233,11 +233,11 @@ public class VacancyManager implements DisposableBean {
         return newVacancies;
     }
 
-    public void loadVacanciesFromFile(File file, Runnable failAction) {
-        List<Vacancy> rawResult = this.fileVacancyService.openRawVacancies(file);
-        if (rawResult != null) {
-            List<Vacancy> result = cacheEmployers(rawResult);
-            loadVacancies(result);
+    public void exportVacancies(File file, Runnable failAction) {
+        List<Vacancy> nonCachedVacancies = this.fileVacancyService.exportVacancies(file);
+        if (nonCachedVacancies != null) {
+            List<Vacancy> cachedResult = cacheVacancies(nonCachedVacancies);
+            loadVacancies(cachedResult);
         } else {
             failAction.run();
         }

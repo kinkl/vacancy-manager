@@ -80,13 +80,13 @@ public class MainFrame extends JFrame implements VacancySearchListener {
         JMenuBar menubar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
 
-        JMenuItem saveFileMenuItem = new JMenuItem("Export vacancies...");
-        saveFileMenuItem.addActionListener(this::onSaveFileMenuItemAction);
-        fileMenu.add(saveFileMenuItem);
+        JMenuItem importVacanciesMenuItem = new JMenuItem("Export vacancies...");
+        importVacanciesMenuItem.addActionListener(this::onImportVacanciesMenuItemAction);
+        fileMenu.add(importVacanciesMenuItem);
 
-        JMenuItem openFileMenuItem = new JMenuItem("Import vacancies...");
-        openFileMenuItem.addActionListener(this::onOpenFileMenuItemAction);
-        fileMenu.add(openFileMenuItem);
+        JMenuItem exportVacanciesMenuItem = new JMenuItem("Import vacancies...");
+        exportVacanciesMenuItem.addActionListener(this::onExportVacanciesMenuItemAction);
+        fileMenu.add(exportVacanciesMenuItem);
 
         menubar.add(fileMenu);
         setJMenuBar(menubar);
@@ -112,7 +112,7 @@ public class MainFrame extends JFrame implements VacancySearchListener {
         return chooser;
     }
 
-    private void onSaveFileMenuItemAction(ActionEvent e) {
+    private void onImportVacanciesMenuItemAction(ActionEvent e) {
         JFileChooser chooser = createFileChooser();
         int result = chooser.showSaveDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -121,17 +121,17 @@ public class MainFrame extends JFrame implements VacancySearchListener {
             if (!selectedFilePath.toString().endsWith(".json")) {
                 selectedFile = new File(selectedFilePath + ".json");
             }
-            this.vacancyManager.saveVacanciesToFile(selectedFile, //
+            this.vacancyManager.importVacancies(selectedFile, //
                     this::showSuccessfullyLoadedVacanciesMessageDialog, //
                     this::showUnableToSaveVacanciesToFile);
         }
     }
 
-    private void onOpenFileMenuItemAction(ActionEvent e) {
+    private void onExportVacanciesMenuItemAction(ActionEvent e) {
         JFileChooser chooser = createFileChooser();
         int result = chooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
-            this.vacancyManager.loadVacanciesFromFile(chooser.getSelectedFile(), //
+            this.vacancyManager.exportVacancies(chooser.getSelectedFile(), //
                     this::showUnableToLoadVacanciesFromFileMessageDialog);
         }
     }

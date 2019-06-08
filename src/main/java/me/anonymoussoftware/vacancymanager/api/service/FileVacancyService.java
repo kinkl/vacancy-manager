@@ -24,7 +24,7 @@ import me.anonymoussoftware.vacancymanager.model.Vacancy;
 @Service
 public class FileVacancyService {
 
-    public boolean saveVacancies(List<Vacancy> vacancies, File file) {
+    public boolean importVacancies(List<Vacancy> vacancies, File file) {
         try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
             JSONObject obj = new JSONObject();
             obj.put("items", vacancies.stream() //
@@ -38,7 +38,7 @@ public class FileVacancyService {
         return true;
     }
 
-    public List<Vacancy> openRawVacancies(File file) {
+    public List<Vacancy> exportVacancies(File file) {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
             String str = reader.lines().collect(Collectors.joining());
