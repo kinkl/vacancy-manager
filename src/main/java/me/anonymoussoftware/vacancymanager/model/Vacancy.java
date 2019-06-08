@@ -30,13 +30,13 @@ public class Vacancy {
         return this.name + " (" + this.employer.getName() + ")";
     }
 
-    public JSONObject toJson() {
+    public JSONObject toJson(boolean writeEmployerBannedStatus) {
         JSONObject result = new JSONObject();
         result.put("id", this.id);
         result.put("isBanned", this.isBanned);
         result.put("name", this.name);
         if (this.employer != null) {
-            result.put("employer", this.employer.toJson());
+            result.put("employer", this.employer.toJson(writeEmployerBannedStatus));
         }
         if (this.area != null) {
             result.put("area", this.area.toJson());

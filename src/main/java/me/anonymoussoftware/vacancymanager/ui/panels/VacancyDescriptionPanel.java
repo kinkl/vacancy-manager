@@ -70,9 +70,8 @@ public class VacancyDescriptionPanel extends JPanel implements VacancySelectionL
                 .orElse("");
         EventQueue.invokeLater(() -> {
             this.vacancyDescriptionTextArea.setText(text);
-            this.banVacancyButton.setEnabled(vacancy != null && !vacancy.isBanned()); 
-            this.banEmployerButton.setEnabled(
-                    vacancy != null && !this.vacancyManager.isEmployerBanned(vacancy.getEmployer().getId()));
+            this.banVacancyButton.setEnabled(vacancy != null && !vacancy.isBanned());
+            this.banEmployerButton.setEnabled(vacancy != null && !vacancy.getEmployer().isBanned());
         });
     }
 }

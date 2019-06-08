@@ -21,8 +21,7 @@ import me.anonymoussoftware.vacancymanager.api.result.VacancyListResult;
 import me.anonymoussoftware.vacancymanager.model.Vacancy;
 
 @SuppressWarnings("serial")
-public class VacancyListPanel extends JPanel
-        implements VacancyListChangeListener, VacancySearchListener {
+public class VacancyListPanel extends JPanel implements VacancyListChangeListener, VacancySearchListener {
 
     private final DefaultListModel<Vacancy> vacancyListModel;
 
@@ -76,7 +75,7 @@ public class VacancyListPanel extends JPanel
             long notBannedVacancyCount = vacancies.getVacancies().stream() //
                     .filter(v -> !v.isBanned()) //
                     .map(Vacancy::getEmployer) //
-                    .filter(e -> !this.vacancyManager.isEmployerBanned(e.getId())) //
+                    .filter(e -> !e.isBanned()) //
                     .count();
             String bannedVacancyCountString = "";
             long bannedVacancyCount = vacancies.getVacancies().size() - notBannedVacancyCount;
@@ -103,7 +102,7 @@ public class VacancyListPanel extends JPanel
             } else if (value.isBanned()) {
                 backgroundColor = Color.RED;
                 foregroundColor = Color.WHITE;
-            } else if (VacancyListPanel.this.vacancyManager.isEmployerBanned(value.getEmployer().getId())) {
+            } else if (value.getEmployer().isBanned()) {
                 backgroundColor = Color.DARK_GRAY;
                 foregroundColor = Color.WHITE;
             } else {

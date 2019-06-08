@@ -43,7 +43,7 @@ public class VacancyManager implements DisposableBean {
 
     private final List<VacancySearchListener> vacancySearchListeners = new CopyOnWriteArrayList<>();
 
-    private final List<BannedEmployerListChangeListener> bannedEmployerListChangeListeners = new CopyOnWriteArrayList<>();
+    private final List<EmployerListChangeListener> employerListChangeListeners = new CopyOnWriteArrayList<>();
 
     private int selectedCityCode;
 
@@ -51,7 +51,7 @@ public class VacancyManager implements DisposableBean {
 
     private VacancyListResult vacancies = new VacancyListResult(0, new ArrayList<>());
 
-    private Map<Integer, Employer> bannedEmployers = new TreeMap<>();
+    private Map<Integer, Employer> employers = new TreeMap<>();
 
     private final Map<String, Integer> CITIES = new LinkedHashMap<>();
 
@@ -84,12 +84,12 @@ public class VacancyManager implements DisposableBean {
         this.vacancySearchListeners.remove(listener);
     }
 
-    public void addBannedEmployerListChangeListener(BannedEmployerListChangeListener listener) {
-        this.bannedEmployerListChangeListeners.add(listener);
+    public void addEmployerListChangeListener(EmployerListChangeListener listener) {
+        this.employerListChangeListeners.add(listener);
     }
 
-    public void removeBannedEmployerListChangeListener(BannedEmployerListChangeListener listener) {
-        this.bannedEmployerListChangeListeners.remove(listener);
+    public void removeEmployerListChangeListener(EmployerListChangeListener listener) {
+        this.employerListChangeListeners.remove(listener);
     }
 
     public Set<String> getAvailableCityNames() {
@@ -111,9 +111,9 @@ public class VacancyManager implements DisposableBean {
 
     public void banSelectedVacancyEmployer() {
         Employer employerToBan = this.selectedVacancy.getEmployer();
-        this.bannedEmployers.put(employerToBan.getId(), employerToBan);
+        this.employers.get(employerToBan.getId()).setBanned(true);
         fireVacancyListChanged(VacancyListChangeListener.VacancyListChangeReason.VACANCY_BAN);
-        fireBannedEmployerListChanged();
+        fireEmployerListChanged();
     }
 
     public int getSelectedCityCode() {
@@ -123,15 +123,15 @@ public class VacancyManager implements DisposableBean {
     private void loadVacancies(VacancyListResult vacancyListResult) {
         this.vacancies = vacancyListResult;
         fireVacancyListChanged(VacancyListChangeListener.VacancyListChangeReason.TOTAL_RELOAD);
+        fireEmployerListChanged();
     }
 
     private void fireVacancyListChanged(VacancyListChangeListener.VacancyListChangeReason reason) {
         this.vacancyChangeListeners.stream().forEach(listener -> listener.onVacancyListChange(reason));
     }
 
-    private void fireBannedEmployerListChanged() {
-        this.bannedEmployerListChangeListeners.stream()
-                .forEach(BannedEmployerListChangeListener::onBannedEmployerListChange);
+    private void fireEmployerListChanged() {
+        this.employerListChangeListeners.stream().forEach(EmployerListChangeListener::onEmployerListChange);
     }
 
     public void startVacanciesSearch(String searchText) {
@@ -143,11 +143,15 @@ public class VacancyManager implements DisposableBean {
             int total = 0;
             int vacanciesToLoad = 0;
             fireVacancySearchProgress(0);
+            Set<Integer> bannedEmployers = this.employers.values().stream() //
+                    .filter(Employer::isBanned) //
+                    .map(Employer::getId) //
+                    .collect(Collectors.toSet());
             do {
                 String url = this.httpVacancyService.getRequestVacancyUrl(searchText, getSelectedCityCode(),
-                        currentPage, this.bannedEmployers.keySet());
+                        currentPage, bannedEmployers);
                 fireVacancyRequestPageStart(url);
-                result = this.httpVacancyService.requestVacancies(url);
+                result = cacheEmployers(this.httpVacancyService.requestVacancies(url));
                 vacancies.addAll(result.getVacancies());
                 total = result.getTotal();
                 vacanciesToLoad = Math.min(total, VACANCY_COUNT_THRESHOLD);
@@ -183,20 +187,17 @@ public class VacancyManager implements DisposableBean {
     public VacancyListResult getAvailableVacancies() {
         List<Vacancy> newVacancyList = this.vacancies.getVacancies().stream() //
                 .sorted(Comparator.comparing(Vacancy::isBanned) //
-                        .thenComparing(v -> isEmployerBanned(v.getEmployer().getId())) //
+                        .thenComparing(v -> v.getEmployer().isBanned()) //
                         .thenComparing(Vacancy::getName) //
                         .thenComparing(v -> v.getEmployer().getName()))
                 .collect(Collectors.toList());
         return new VacancyListResult(this.vacancies.getTotal(), newVacancyList);
     }
 
-    public boolean isEmployerBanned(Integer employerId) {
-        return this.bannedEmployers.containsKey(employerId);
-    }
-
-    public List<Employer> getBannedEmployers() {
-        return this.bannedEmployers.values().stream() //
-                .sorted(Comparator.comparing(Employer::getName)) //
+    public List<Employer> getEmployers() {
+        return this.employers.values().stream() //
+                .sorted(Comparator.comparing((Employer e) -> !e.isBanned()) //
+                        .thenComparing(Employer::getName))
                 .collect(Collectors.toList());
     }
 
@@ -218,10 +219,27 @@ public class VacancyManager implements DisposableBean {
         }
     }
 
+    private VacancyListResult cacheEmployers(VacancyListResult rawResult) {
+        List<Vacancy> rawVacancies = rawResult.getVacancies();
+        List<Vacancy> newVacancies = new ArrayList<>();
+        for (Vacancy rawVacancy : rawVacancies) {
+            Employer rawEmployer = rawVacancy.getEmployer();
+            Employer cachedEmployer = this.employers.get(rawEmployer.getId());
+            if (cachedEmployer == null) {
+                this.employers.put(rawEmployer.getId(), rawEmployer);
+                cachedEmployer = rawEmployer;
+            }
+            newVacancies.add(new Vacancy(rawVacancy.getId(), rawVacancy.isBanned(), rawVacancy.getName(),
+                    cachedEmployer, rawVacancy.getArea(), rawVacancy.getSnippet()));
+        }
+        return new VacancyListResult(rawResult.getTotal(), newVacancies);
+    }
+
     public void loadVacanciesFromFile(File file, Runnable failAction) {
-        VacancyListResult vacanciesFromFile = this.fileVacancyService.openVacancies(file);
-        if (vacanciesFromFile != null) {
-            loadVacancies(vacanciesFromFile);
+        VacancyListResult rawResult = this.fileVacancyService.openRawVacancies(file);
+        if (rawResult != null) {
+            VacancyListResult result = cacheEmployers(rawResult);
+            loadVacancies(result);
         } else {
             failAction.run();
         }
@@ -243,8 +261,8 @@ public class VacancyManager implements DisposableBean {
         void onVacancyListChange(VacancyListChangeReason reason);
     }
 
-    public static interface BannedEmployerListChangeListener {
-        void onBannedEmployerListChange();
+    public static interface EmployerListChangeListener {
+        void onEmployerListChange();
     }
 
     public static interface VacancySelectionListener {
