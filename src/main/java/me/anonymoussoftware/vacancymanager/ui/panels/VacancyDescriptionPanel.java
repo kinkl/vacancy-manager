@@ -12,6 +12,7 @@ import javax.swing.JTextPane;
 import me.anonymoussoftware.vacancymanager.App;
 import me.anonymoussoftware.vacancymanager.VacancyManager;
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancySelectionListener;
+import me.anonymoussoftware.vacancymanager.model.Employer;
 import me.anonymoussoftware.vacancymanager.model.Snippet;
 import me.anonymoussoftware.vacancymanager.model.Vacancy;
 import me.anonymoussoftware.vacancymanager.model.aggregated.AggregatedVacancy;
@@ -73,6 +74,13 @@ public class VacancyDescriptionPanel extends JPanel implements VacancySelectionL
                 description.append(aggregatedVacancy.getVacancy().getUrl());
                 description.append("<br/>");
                 description.append("<br/>");
+                Employer employer = vacancy.getEmployer();
+                if (employer != null) {
+                    description.append("<b>Employer URL: </b>");
+                    description.append(employer.getUrl());
+                    description.append("<br/>");
+                    description.append("<br/>");
+                }
                 Snippet snippet = vacancy.getSnippet();
                 if (snippet != null) {
                     description.append(snippet.toString());
