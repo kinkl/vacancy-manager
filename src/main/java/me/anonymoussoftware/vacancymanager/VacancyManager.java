@@ -228,7 +228,7 @@ public class VacancyManager implements DisposableBean {
                 cachedEmployer = rawEmployer;
             }
             newVacancies.add(new Vacancy(rawVacancy.getId(), rawVacancy.isBanned(), rawVacancy.getName(),
-                    cachedEmployer, rawVacancy.getArea(), rawVacancy.getSnippet()));
+                    cachedEmployer, rawVacancy.getArea(), rawVacancy.getSnippet(), rawVacancy.getUrl()));
         }
         return newVacancies;
     }

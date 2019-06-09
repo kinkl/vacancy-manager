@@ -2,7 +2,6 @@ package me.anonymoussoftware.vacancymanager.ui.panels;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-import java.util.Optional;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -13,6 +12,7 @@ import javax.swing.JTextPane;
 import me.anonymoussoftware.vacancymanager.App;
 import me.anonymoussoftware.vacancymanager.VacancyManager;
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancySelectionListener;
+import me.anonymoussoftware.vacancymanager.model.Snippet;
 import me.anonymoussoftware.vacancymanager.model.Vacancy;
 import me.anonymoussoftware.vacancymanager.model.aggregated.AggregatedVacancy;
 
@@ -64,16 +64,26 @@ public class VacancyDescriptionPanel extends JPanel implements VacancySelectionL
 
     @Override
     public void onVacancySelection() {
-        AggregatedVacancy vacancy = this.vacancyManager.getSelectedVacancy();
-        String text = Optional.ofNullable(vacancy) //
-                .map(AggregatedVacancy::getVacancy)
-                .map(Vacancy::getSnippet) //
-                .map(Object::toString) //
-                .orElse("");
+        AggregatedVacancy aggregatedVacancy = this.vacancyManager.getSelectedVacancy();
+        StringBuilder description = new StringBuilder();
+        if (aggregatedVacancy != null) {
+            Vacancy vacancy = aggregatedVacancy.getVacancy();
+            if (vacancy != null) {
+                description.append("<b>Vacancy URL: </b>");
+                description.append(aggregatedVacancy.getVacancy().getUrl());
+                description.append("<br/>");
+                description.append("<br/>");
+                Snippet snippet = vacancy.getSnippet();
+                if (snippet != null) {
+                    description.append(snippet.toString());
+                }
+            }
+        }
         EventQueue.invokeLater(() -> {
-            this.vacancyDescriptionTextArea.setText(text);
-            this.banVacancyButton.setEnabled(vacancy != null && !vacancy.getVacancy().isBanned());
-            this.banEmployerButton.setEnabled(vacancy != null && !vacancy.getVacancy().getEmployer().isBanned());
+            this.vacancyDescriptionTextArea.setText(description.toString());
+            this.banVacancyButton.setEnabled(aggregatedVacancy != null && !aggregatedVacancy.getVacancy().isBanned());
+            this.banEmployerButton
+                    .setEnabled(aggregatedVacancy != null && !aggregatedVacancy.getVacancy().getEmployer().isBanned());
         });
     }
 }
