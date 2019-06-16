@@ -45,6 +45,8 @@ public class VacancyManager implements DisposableBean {
 
     private final List<EmployerListChangeListener> employerListChangeListeners = new CopyOnWriteArrayList<>();
 
+    private final List<VacancyDescriptionRequestListener> vacancyDescriptionRequestListeners = new CopyOnWriteArrayList<>();
+
     private int selectedCityCode;
 
     private AggregatedVacancy selectedVacancy;
@@ -92,6 +94,14 @@ public class VacancyManager implements DisposableBean {
         this.employerListChangeListeners.remove(listener);
     }
 
+    public void addVacancyDescriptionRequestListener(VacancyDescriptionRequestListener listener) {
+        this.vacancyDescriptionRequestListeners.add(listener);
+    }
+
+    public void removeVacancyDescriptionRequestListener(VacancyDescriptionRequestListener listener) {
+        this.vacancyDescriptionRequestListeners.remove(listener);
+    }
+
     public Set<String> getAvailableCityNames() {
         return Collections.unmodifiableSet(CITIES.keySet());
     }
@@ -116,6 +126,21 @@ public class VacancyManager implements DisposableBean {
         fireEmployerListChanged();
     }
 
+    public void requestSelectedVacancyDescription() {
+        if (this.selectedVacancy == null) {
+            return;
+        }
+        this.threadPool.submit(() -> {
+            Vacancy vacancy = this.selectedVacancy.getVacancy();
+            int id = vacancy.getId();
+            String url = this.httpVacancyService.getRequestVacancyDescriptionUrl(id);
+            fireVacancyDescriptionRequestStart(url);
+            String description = this.httpVacancyService.requestVacancyDescription(url);
+            vacancy.setDescription(description);
+            fireVacancyDescriptionRequestFinish();
+        });
+    }
+
     public int getSelectedCityCode() {
         return this.selectedCityCode;
     }
@@ -128,6 +153,14 @@ public class VacancyManager implements DisposableBean {
 
     private void fireVacancyListChanged(VacancyListChangeListener.VacancyListChangeReason reason) {
         this.vacancyChangeListeners.stream().forEach(listener -> listener.onVacancyListChange(reason));
+    }
+
+    private void fireVacancyDescriptionRequestStart(String url) {
+        this.vacancyDescriptionRequestListeners.stream().forEach(listener -> listener.onVacancyDescriptionRequestStart(url));
+    }
+
+    private void fireVacancyDescriptionRequestFinish() {
+        this.vacancyDescriptionRequestListeners.stream().forEach(listener -> listener.onVacancyDescriptionRequestFinish());
     }
 
     private void fireEmployerListChanged() {
@@ -227,8 +260,14 @@ public class VacancyManager implements DisposableBean {
                 this.employers.put(rawEmployer.getId(), rawEmployer);
                 cachedEmployer = rawEmployer;
             }
-            newVacancies.add(new Vacancy(rawVacancy.getId(), rawVacancy.isBanned(), rawVacancy.getName(),
-                    cachedEmployer, rawVacancy.getArea(), rawVacancy.getSnippet(), rawVacancy.getUrl()));
+            newVacancies.add(new Vacancy(rawVacancy.getId(), //
+                    rawVacancy.isBanned(), //
+                    rawVacancy.getName(), //
+                    cachedEmployer, //
+                    rawVacancy.getArea(), //
+                    rawVacancy.getSnippet(), //
+                    rawVacancy.getUrl(), //
+                    rawVacancy.getDescription()));
         }
         return newVacancies;
     }
@@ -296,6 +335,12 @@ public class VacancyManager implements DisposableBean {
 
     public static interface VacancySelectionListener {
         void onVacancySelection();
+    }
+
+    public static interface VacancyDescriptionRequestListener {
+        void onVacancyDescriptionRequestStart(String url);
+
+        void onVacancyDescriptionRequestFinish();
     }
 
     @Override

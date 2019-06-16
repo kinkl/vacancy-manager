@@ -16,6 +16,7 @@ public class Vacancy {
     private final Area area;
     private final Snippet snippet;
     private final String url;
+    private String description;
 
     public static Vacancy fromJson(JSONObject json) {
         return new Vacancy(json.getInt("id"), //
@@ -24,7 +25,8 @@ public class Vacancy {
                 Employer.fromJson(json.getJSONObject("employer")), //
                 Area.fromJson(json.getJSONObject("area")), //
                 Snippet.fromJson(json.optJSONObject("snippet")),
-                json.optString("alternate_url"));
+                json.optString("alternate_url"), //
+                json.optString("description"));
     }
 
     @Override
@@ -48,6 +50,9 @@ public class Vacancy {
         }
         if (this.url != null && !this.url.isEmpty()) {
             result.put("alternate_url", this.url);
+        }
+        if (this.description != null && !this.description.isEmpty()) {
+            result.put("description", this.description);
         }
         return result;
     }

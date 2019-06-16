@@ -45,6 +45,10 @@ public class HttpVacancyService {
         return String.format("%s?text=%s&area=%d&page=%d&per_page=100", HOST, sb.toString(), selectedCityCode, page);
     }
 
+    public String getRequestVacancyDescriptionUrl(int vacancyId) {
+        return String.format("%s/%d", HOST, vacancyId);
+    }
+
     public VacancyListResult requestVacancies(String queryUrl) {
         log.info("Requesting query [" + queryUrl + "]");
         try (InputStream stream = new URL(queryUrl).openStream();
@@ -64,6 +68,25 @@ public class HttpVacancyService {
                 result.add(vacancy);
             }
             return new VacancyListResult(jsonObject.getInt("found"), result);
+
+        } catch (Exception e) {
+            log.fatal("An exception has occured", e);
+            return null;
+        }
+    }
+
+    public String requestVacancyDescription(String queryUrl) {
+        log.info("Requesting query [" + queryUrl + "]");
+        try (InputStream stream = new URL(queryUrl).openStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+                StringWriter stringWriter = new StringWriter()) {
+            reader.lines().forEach(stringWriter::write);
+            String response = stringWriter.toString();
+            try (PrintWriter pw = new PrintWriter(new FileOutputStream("last_response.json"))) {
+                pw.append(response);
+            }
+            JSONObject jsonObject = new JSONObject(response);
+            return jsonObject.getString("description");
 
         } catch (Exception e) {
             log.fatal("An exception has occured", e);

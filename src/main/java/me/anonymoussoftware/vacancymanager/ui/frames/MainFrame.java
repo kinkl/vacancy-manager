@@ -24,6 +24,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import me.anonymoussoftware.vacancymanager.App;
 import me.anonymoussoftware.vacancymanager.VacancyManager;
+import me.anonymoussoftware.vacancymanager.VacancyManager.VacancyDescriptionRequestListener;
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancySearchListener;
 import me.anonymoussoftware.vacancymanager.ui.panels.EmployerListPanel;
 import me.anonymoussoftware.vacancymanager.ui.panels.SearchFormPanel;
@@ -31,7 +32,7 @@ import me.anonymoussoftware.vacancymanager.ui.panels.VacancyDescriptionPanel;
 import me.anonymoussoftware.vacancymanager.ui.panels.VacancyListPanel;
 
 @SuppressWarnings("serial")
-public class MainFrame extends JFrame implements VacancySearchListener {
+public class MainFrame extends JFrame implements VacancySearchListener, VacancyDescriptionRequestListener {
 
     private static final int FRAME_WIDTH = 900;
 
@@ -108,10 +109,12 @@ public class MainFrame extends JFrame implements VacancySearchListener {
     public void addNotify() {
         super.addNotify();
         this.vacancyManager.addVacancySearchListener(this);
+        this.vacancyManager.addVacancyDescriptionRequestListener(this);
     }
 
     @Override
     public void removeNotify() {
+        this.vacancyManager.removeVacancyDescriptionRequestListener(this);
         this.vacancyManager.removeVacancySearchListener(this);
         super.removeNotify();
     }
@@ -229,5 +232,23 @@ public class MainFrame extends JFrame implements VacancySearchListener {
                     JOptionPane.WARNING_MESSAGE);
         }
 
+    }
+
+    @Override
+    public void onVacancyDescriptionRequestStart(String url) {
+        EventQueue.invokeLater(() -> {
+            this.progressBar.setString(this.progressBar.getString() + " [Requesting " + url + "]");
+            this.statusBarLabel.setVisible(false);
+            this.progressBar.setVisible(true);
+        });
+    }
+
+    @Override
+    public void onVacancyDescriptionRequestFinish() {
+        EventQueue.invokeLater(() -> {
+            this.statusBarLabel.setText("Vacancy description is downloaded successfully");
+            this.statusBarLabel.setVisible(true);
+            this.progressBar.setVisible(false);
+        });
     }
 }
