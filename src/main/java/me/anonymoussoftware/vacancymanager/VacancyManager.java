@@ -60,6 +60,9 @@ public class VacancyManager implements DisposableBean {
     {
         CITIES.put("Saint Petersburg", 2);
         CITIES.put("Moscow", 1);
+        CITIES.put("Sochi", 237);
+        CITIES.put("Krasnodar", 53);
+        CITIES.put("Chelyabinsk", 104);
     }
 
     public void addVacancyListChangeListener(VacancyListChangeListener listener) {
