@@ -269,6 +269,7 @@ public class VacancyManager implements DisposableBean {
                     cachedEmployer, //
                     rawVacancy.getArea(), //
                     rawVacancy.getSnippet(), //
+                    rawVacancy.getSalary(), //
                     rawVacancy.getUrl(), //
                     rawVacancy.getDescription()));
         }

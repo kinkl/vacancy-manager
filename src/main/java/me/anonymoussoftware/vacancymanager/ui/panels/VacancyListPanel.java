@@ -104,6 +104,9 @@ public class VacancyListPanel extends JPanel implements VacancyListChangeListene
             } else if (value.getVacancy().getEmployer().isBanned()) {
                 backgroundColor = Color.DARK_GRAY;
                 foregroundColor = Color.WHITE;
+            } else if (value.getVacancy().getSalary() != null) {
+                backgroundColor = Color.BLACK;
+                foregroundColor = Color.GREEN;
             } else {
                 backgroundColor = list.getBackground();
             }
@@ -111,10 +114,15 @@ public class VacancyListPanel extends JPanel implements VacancyListChangeListene
             setForeground(foregroundColor);
             setOpaque(true);
             setFont(list.getFont());
-            setText(String.format("%s [%d] - %s", //
+            String salaryInfo = "";
+            if (value.getVacancy().getSalary() != null) {
+                salaryInfo = String.format(" (%s)", value.getVacancy().getSalary().toString());
+            }
+            setText(String.format("%s [%d] - %s%s", //
                     value.getVacancy().getEmployer().getName(), //
                     value.getEmployerVacancies().size(), //
-                    value.getVacancy().getName()));
+                    value.getVacancy().getName(), //
+                    salaryInfo));
             return this;
         }
 

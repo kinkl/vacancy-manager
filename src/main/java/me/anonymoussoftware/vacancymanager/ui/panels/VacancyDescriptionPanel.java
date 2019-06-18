@@ -14,6 +14,7 @@ import me.anonymoussoftware.vacancymanager.VacancyManager;
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancyDescriptionRequestListener;
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancySelectionListener;
 import me.anonymoussoftware.vacancymanager.model.Employer;
+import me.anonymoussoftware.vacancymanager.model.Salary;
 import me.anonymoussoftware.vacancymanager.model.Snippet;
 import me.anonymoussoftware.vacancymanager.model.Vacancy;
 import me.anonymoussoftware.vacancymanager.model.aggregated.AggregatedVacancy;
@@ -80,13 +81,22 @@ public class VacancyDescriptionPanel extends JPanel implements VacancySelectionL
         if (aggregatedVacancy != null) {
             Vacancy vacancy = aggregatedVacancy.getVacancy();
             if (vacancy != null) {
-                description.append("<b>Vacancy URL: </b>");
-                description.append(aggregatedVacancy.getVacancy().getUrl());
+                description.append(String.format("<b>%s</b>", vacancy.getName()));
                 description.append("<br/>");
+                description.append("URL: ");
+                description.append(vacancy.getUrl());
+                description.append("<br/>");
+                Salary salary = vacancy.getSalary();
+                if (salary != null) {
+                    description.append(String.format("<b>%s</b>", salary.toString()));
+                    description.append("<br/>");
+                }
                 description.append("<br/>");
                 Employer employer = vacancy.getEmployer();
                 if (employer != null) {
-                    description.append("<b>Employer URL: </b>");
+                    description.append(String.format("<b>%s</b>", employer.getName()));
+                    description.append("<br/>");
+                    description.append("URL: ");
                     description.append(employer.getUrl());
                     description.append("<br/>");
                     description.append("<br/>");
