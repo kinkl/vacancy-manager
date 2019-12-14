@@ -29,3 +29,5 @@ hs_err_pid*
 
 /last_response.json
 /saved_vacancies/
+/.idea/
+/vacancymanager.iml
