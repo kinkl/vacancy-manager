@@ -12,7 +12,7 @@ import java.util.stream.Collectors
 @Service
 class HttpVacancyService {
 
-    fun getRequestVacancyUrl(text: String, selectedCityCode: Int, page: Int, bannedEmployers: Set<Int>): String {
+    fun getRequestVacancyUrl(text: String, area: Int, page: Int, bannedEmployers: Set<Int>): String {
         var text = text
         text = text.trim { it <= ' ' } //
             .replace(" ", "%20") //
@@ -21,17 +21,20 @@ class HttpVacancyService {
             .replace("\n", "%20")
         val sb = StringBuilder(text)
         val bannedEmployerListQueryPart = bannedEmployers.stream() //
-            .map { i -> "NOT%20!COMPANY_ID:" + i!! } //
+            .map { i -> "NOT%20!COMPANY_ID:$i" } //
             .collect(Collectors.joining("%20and%20"))
-        if (!bannedEmployerListQueryPart.isEmpty()) {
-            sb.append("%20and%20") //
-                .append(bannedEmployerListQueryPart)
+        if (bannedEmployerListQueryPart.isNotEmpty()) {
+            sb.append("%20and%20$bannedEmployerListQueryPart") //
         }
-        return String.format("%s?text=%s&area=%d&page=%d&per_page=100", HOST, sb.toString(), selectedCityCode, page)
+        return """$HOST?
+            |text=$sb
+            |&area=$area
+            |&page=$page
+            |&per_page=100""".trimMargin().replace("\n", "")
     }
 
     fun getRequestVacancyDescriptionUrl(vacancyId: Int): String {
-        return String.format("%s/%d", HOST, vacancyId)
+        return "$HOST/$vacancyId"
     }
 
     fun requestVacancies(queryUrl: String): VacancyListResult? {
