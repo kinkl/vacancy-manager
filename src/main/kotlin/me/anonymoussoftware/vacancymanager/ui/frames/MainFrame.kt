@@ -8,13 +8,14 @@ import me.anonymoussoftware.vacancymanager.ui.panels.EmployerListPanel
 import me.anonymoussoftware.vacancymanager.ui.panels.SearchFormPanel
 import me.anonymoussoftware.vacancymanager.ui.panels.VacancyDescriptionPanel
 import me.anonymoussoftware.vacancymanager.ui.panels.VacancyListPanel
-
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.EventQueue
+import java.awt.Toolkit
+import java.io.File
 import javax.swing.*
 import javax.swing.border.BevelBorder
 import javax.swing.filechooser.FileNameExtensionFilter
-import java.awt.*
-import java.awt.event.ActionEvent
-import java.io.File
 
 class MainFrame : JFrame(), VacancySearchListener, VacancyDescriptionRequestListener {
 
@@ -67,21 +68,21 @@ class MainFrame : JFrame(), VacancySearchListener, VacancyDescriptionRequestList
 
         val vacanciesMenu = JMenu("Vacancies")
         val importVacanciesMenuItem = JMenuItem("Export...")
-        importVacanciesMenuItem.addActionListener( { this.onImportVacanciesMenuItemAction(it) })
+        importVacanciesMenuItem.addActionListener( { this.onImportVacanciesMenuItemAction() })
         vacanciesMenu.add(importVacanciesMenuItem)
 
         val exportVacanciesMenuItem = JMenuItem("Import...")
-        exportVacanciesMenuItem.addActionListener( { this.onExportVacanciesMenuItemAction(it) })
+        exportVacanciesMenuItem.addActionListener( { this.onExportVacanciesMenuItemAction() })
         vacanciesMenu.add(exportVacanciesMenuItem)
         fileMenu.add(vacanciesMenu)
 
         val employersMenu = JMenu("Employers")
         val importEmployersMenuItem = JMenuItem("Export...")
-        importEmployersMenuItem.addActionListener( { this.onImportEmployersMenuItemAction(it) })
+        importEmployersMenuItem.addActionListener( { this.onImportEmployersMenuItemAction() })
         employersMenu.add(importEmployersMenuItem)
 
         val exportEmployersMenuItem = JMenuItem("Import...")
-        exportEmployersMenuItem.addActionListener( { this.onExportEmployersMenuItemAction(it) })
+        exportEmployersMenuItem.addActionListener { this.onExportEmployersMenuItemAction() }
         employersMenu.add(exportEmployersMenuItem)
         fileMenu.add(employersMenu)
 
@@ -109,7 +110,7 @@ class MainFrame : JFrame(), VacancySearchListener, VacancyDescriptionRequestList
         return chooser
     }
 
-    private fun onImportVacanciesMenuItemAction(e: ActionEvent) {
+    private fun onImportVacanciesMenuItemAction() {
         val chooser = createFileChooser()
         val result = chooser.showSaveDialog(this)
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -124,7 +125,7 @@ class MainFrame : JFrame(), VacancySearchListener, VacancyDescriptionRequestList
         }
     }
 
-    private fun onExportVacanciesMenuItemAction(e: ActionEvent) {
+    private fun onExportVacanciesMenuItemAction() {
         val chooser = createFileChooser()
         val result = chooser.showOpenDialog(this)
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -133,7 +134,7 @@ class MainFrame : JFrame(), VacancySearchListener, VacancyDescriptionRequestList
         }
     }
 
-    private fun onImportEmployersMenuItemAction(e: ActionEvent) {
+    private fun onImportEmployersMenuItemAction() {
         val chooser = createFileChooser()
         val result = chooser.showSaveDialog(this)
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -148,7 +149,7 @@ class MainFrame : JFrame(), VacancySearchListener, VacancyDescriptionRequestList
         }
     }
 
-    private fun onExportEmployersMenuItemAction(e: ActionEvent) {
+    private fun onExportEmployersMenuItemAction() {
         val chooser = createFileChooser()
         val result = chooser.showOpenDialog(this)
         if (result == JFileChooser.APPROVE_OPTION) {

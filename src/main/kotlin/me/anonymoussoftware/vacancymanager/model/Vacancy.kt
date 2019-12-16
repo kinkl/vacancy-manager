@@ -2,21 +2,18 @@ package me.anonymoussoftware.vacancymanager.model
 
 import org.json.JSONObject
 
-class Vacancy(
-
-    val id: Int = 0,
-    var isBanned: Boolean = false,
-    val name: String? = null,
-    val employer: Employer? = null,
-    val area: Area? = null,
-    val snippet: Snippet? = null,
-    val salary: Salary? = null,
-    val url: String? = null,
-    var description: String? = null
-){
+class Vacancy(override val id: Int,
+              override val name: String,
+              var isBanned: Boolean,
+              val employer: Employer,
+              val area: Area,
+              val snippet: Snippet?,
+              val salary: Salary?,
+              val url: String,
+              var description: String?) : ModelWithNameAndId {
 
     override fun toString(): String {
-        return this.name + " (" + this.employer!!.name + ")"
+        return this.name + " (" + this.employer.name + ")"
     }
 
     fun toJson(writeEmployerBannedStatus: Boolean): JSONObject {
@@ -24,38 +21,36 @@ class Vacancy(
         result.put("id", this.id)
         result.put("isBanned", this.isBanned)
         result.put("name", this.name)
-        if (this.employer != null) {
-            result.put("employer", this.employer.toJson(writeEmployerBannedStatus))
-        }
-        if (this.area != null) {
-            result.put("area", this.area.toJson())
-        }
+        result.put("employer", this.employer.toJson(writeEmployerBannedStatus))
+        result.put("area", this.area.toJson())
         if (this.snippet != null) {
             result.put("snippet", this.snippet.toJson())
         }
         if (this.salary != null) {
             result.put("salary", this.salary.toJson())
         }
-        if (this.url != null && !this.url.isEmpty()) {
+        if (this.url.isNotEmpty()) {
             result.put("alternate_url", this.url)
         }
-        if (this.description != null && !this.description!!.isEmpty()) {
+        if (this.description != null && this.description!!.isNotEmpty()) {
             result.put("description", this.description)
         }
         return result
     }
 
-    companion object {
+    companion object : JsonDeserializer<Vacancy> {
 
-        fun fromJson(json: JSONObject): Vacancy {
+        override fun fromJson(json: JSONObject): Vacancy {
+            val salary = json.optJSONObject("salary")
+            val snippet = json.optJSONObject("snippet")
             return Vacancy(
                 json.getInt("id"), //
-                json.optBoolean("isBanned"), //
                 json.getString("name"), //
+                json.optBoolean("isBanned"), //
                 Employer.fromJson(json.getJSONObject("employer")), //
                 Area.fromJson(json.getJSONObject("area")), //
-                Snippet.fromJson(json.optJSONObject("snippet")), //
-                Salary.fromJson(json.optJSONObject("salary")), //
+                if (snippet != null) Snippet.fromJson(snippet) else null, //
+                if (salary != null) Salary.fromJson(salary) else null, //
                 json.optString("alternate_url"), //
                 json.optString("description")
             )

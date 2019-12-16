@@ -2,8 +2,8 @@ package me.anonymoussoftware.vacancymanager.model
 
 import org.json.JSONObject
 
-class Area (val id: Int = 0,
-    val name: String? = null) {
+class Area (override val id: Int,
+            override val name: String) : ModelWithNameAndId {
 
     fun toJson(): JSONObject {
         val result = JSONObject()
@@ -12,10 +12,8 @@ class Area (val id: Int = 0,
         return result
     }
 
-    companion object {
-
-        fun fromJson(json: JSONObject): Area {
-            return Area(json.getInt("id"), json.getString("name"))
-        }
+    companion object : JsonDeserializer<Area> {
+        override fun fromJson(json: JSONObject) : Area =
+            Area(json.getInt("id"), json.getString("name"))
     }
 }

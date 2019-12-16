@@ -4,14 +4,9 @@ import me.anonymoussoftware.vacancymanager.App
 import me.anonymoussoftware.vacancymanager.VacancyManager
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancyDescriptionRequestListener
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancySelectionListener
-import me.anonymoussoftware.vacancymanager.model.Employer
-import me.anonymoussoftware.vacancymanager.model.Salary
-import me.anonymoussoftware.vacancymanager.model.Snippet
-import me.anonymoussoftware.vacancymanager.model.Vacancy
-import me.anonymoussoftware.vacancymanager.model.aggregated.AggregatedVacancy
-
+import java.awt.BorderLayout
+import java.awt.EventQueue
 import javax.swing.*
-import java.awt.*
 
 class VacancyDescriptionPanel : JPanel(), VacancySelectionListener, VacancyDescriptionRequestListener {
 
@@ -37,16 +32,16 @@ class VacancyDescriptionPanel : JPanel(), VacancySelectionListener, VacancyDescr
 
         this.banVacancyButton = JButton("Ban vacancy")
         this.banVacancyButton.isEnabled = false
-        this.banVacancyButton.addActionListener { e -> this.vacancyManager.banSelectedVacancy() }
+        this.banVacancyButton.addActionListener { _ -> this.vacancyManager.banSelectedVacancy() }
         buttonPanel.add(this.banVacancyButton)
 
         this.banEmployerButton = JButton("Ban company")
-        this.banEmployerButton.addActionListener { e -> this.vacancyManager.banSelectedVacancyEmployer() }
+        this.banEmployerButton.addActionListener { _ -> this.vacancyManager.banSelectedVacancyEmployer() }
         this.banEmployerButton.isEnabled = false
         buttonPanel.add(banEmployerButton)
 
         this.requestDescriptionButton = JButton("Request vacancy description")
-        this.requestDescriptionButton.addActionListener { e -> this.vacancyManager.requestSelectedVacancyDescription() }
+        this.requestDescriptionButton.addActionListener { _ -> this.vacancyManager.requestSelectedVacancyDescription() }
         this.requestDescriptionButton.isEnabled = false
         buttonPanel.add(requestDescriptionButton)
 
@@ -71,37 +66,35 @@ class VacancyDescriptionPanel : JPanel(), VacancySelectionListener, VacancyDescr
         if (aggregatedVacancy != null) {
             val vacancy = aggregatedVacancy.vacancy
             if (vacancy != null) {
-                description.append(String.format("<b>%s</b>", vacancy.name))
-                description.append("<br/>")
-                description.append("URL: ")
-                description.append(vacancy.url)
-                description.append("<br/>")
+                description.append(
+                    """
+                    <b>${vacancy.name}</b>
+                    <br/>
+                    URL: ${vacancy.url}
+                    <br/>
+                    """
+                )
                 val salary = vacancy.salary
                 if (salary != null) {
-                    description.append(String.format("<b>%s</b>", salary.toString()))
-                    description.append("<br/>")
+                    description.append("<b>$salary</b><br/>")
                 }
-                description.append("<br/>")
-                val employer = vacancy.employer
-                if (employer != null) {
-                    description.append(String.format("<b>%s</b>", employer.name))
-                    description.append("<br/>")
-                    description.append("URL: ")
-                    description.append(employer.url)
-                    description.append("<br/>")
-                    description.append("<br/>")
-                }
+                description.append(
+                    """
+                    <br/>
+                    <b>${vacancy.employer.name}</b>
+                    <br/>
+                    URL: ${vacancy.employer.url}
+                    <br/>
+                    <br/>
+                    """
+                )
                 val snippet = vacancy.snippet
                 if (snippet != null) {
-                    description.append(snippet.toString())
-                    description.append("<br/>")
-                    description.append("<br/>")
+                    description.append("$snippet<br/><br/>")
                 }
                 val vacancyDescription = vacancy.description
-                if (vacancyDescription != null && !vacancyDescription.isEmpty()) {
-                    description.append("<b>Detailed description: </b>")
-                    description.append("<br/>")
-                    description.append(vacancyDescription)
+                if (vacancyDescription != null && vacancyDescription.isNotEmpty()) {
+                    description.append("<b>Detailed description: </b><br/>$vacancyDescription")
                 }
             }
         }
@@ -113,7 +106,7 @@ class VacancyDescriptionPanel : JPanel(), VacancySelectionListener, VacancyDescr
             this.vacancyDescriptionTextArea.text = vacancyDescription
             this.banVacancyButton.isEnabled = aggregatedVacancy != null && !aggregatedVacancy.vacancy!!.isBanned
             this.banEmployerButton.isEnabled =
-                aggregatedVacancy != null && !aggregatedVacancy.vacancy!!.employer!!.isBanned
+                aggregatedVacancy != null && !aggregatedVacancy.vacancy!!.employer.isBanned
             this.requestDescriptionButton.isEnabled = (aggregatedVacancy != null //
                     && (aggregatedVacancy.vacancy!!.description == null || aggregatedVacancy.vacancy.description!!.isEmpty()))
         }

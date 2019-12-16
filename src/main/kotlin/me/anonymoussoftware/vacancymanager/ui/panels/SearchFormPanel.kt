@@ -2,10 +2,7 @@ package me.anonymoussoftware.vacancymanager.ui.panels
 
 import me.anonymoussoftware.vacancymanager.App
 import me.anonymoussoftware.vacancymanager.VacancyManager
-
 import javax.swing.*
-import java.awt.event.ActionEvent
-import java.util.Enumeration
 
 class SearchFormPanel : JPanel(), VacancyManager.VacancySearchListener {
 
@@ -23,13 +20,13 @@ class SearchFormPanel : JPanel(), VacancyManager.VacancySearchListener {
         add(queryTextField)
 
         this.searchButton = JButton("Run new search")
-        this.searchButton.addActionListener { this.onSearchButtonAction(it) }
+        this.searchButton.addActionListener { this.onSearchButtonAction() }
         add(this.searchButton)
 
         this.cityGroup = ButtonGroup()
         for (city in this.vacancyManager.availableCityNames) {
             val radioButton = JRadioButton(city)
-            radioButton.addActionListener { e -> this.vacancyManager.selectCity(radioButton.text) }
+            radioButton.addActionListener { _ -> this.vacancyManager.selectCity(radioButton.text) }
             this.cityGroup.add(radioButton)
             add(radioButton)
         }
@@ -46,7 +43,7 @@ class SearchFormPanel : JPanel(), VacancyManager.VacancySearchListener {
         super.removeNotify()
     }
 
-    private fun onSearchButtonAction(e: ActionEvent) {
+    private fun onSearchButtonAction() {
         this.vacancyManager.startVacanciesSearch(this.queryTextField.text)
     }
 

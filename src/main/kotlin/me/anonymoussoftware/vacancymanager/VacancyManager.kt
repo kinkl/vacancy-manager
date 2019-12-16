@@ -13,8 +13,8 @@ import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.function.Consumer
-import java.util.function.Predicate
 import java.util.stream.Collectors
+import kotlin.math.min
 
 @Service
 class VacancyManager : DisposableBean {
@@ -63,14 +63,14 @@ class VacancyManager : DisposableBean {
     val availableVacancies: List<AggregatedVacancy>
         get() {
             val employerToVacancies = this.vacancies.stream()
-                .collect(Collectors.groupingBy { v: Vacancy -> v.employer!!.id })
+                .collect(Collectors.groupingBy { v: Vacancy -> v.employer.id })
             return this.vacancies.stream()
-                .map { v -> AggregatedVacancy(v, employerToVacancies[v.employer!!.id]) }
+                .map { v -> AggregatedVacancy(v, employerToVacancies[v.employer.id]) }
                 .sorted(Comparator.comparing { v: AggregatedVacancy -> v.vacancy!!.isBanned }
-                    .thenComparing { v -> v.vacancy!!.employer!!.isBanned }
+                    .thenComparing { v -> v.vacancy!!.employer.isBanned }
                     .thenComparing { v -> -v.employerVacancies!!.size }
-                    .thenComparing { v -> v.vacancy!!.employer!!.name!! }
-                    .thenComparing { v -> v.vacancy!!.name!! })
+                    .thenComparing { v -> v.vacancy!!.employer.name }
+                    .thenComparing { v -> v.vacancy!!.name })
                 .collect(Collectors.toList())
         }
 
@@ -134,7 +134,7 @@ class VacancyManager : DisposableBean {
 
     fun banSelectedVacancyEmployer() {
         val employerToBan = this.selectedVacancy!!.vacancy!!.employer
-        this.employers[employerToBan!!.id]?.isBanned = true
+        this.employers[employerToBan.id]?.isBanned = true
         fireVacancyListChanged(VacancyListChangeListener.VacancyListChangeReason.VACANCY_BAN)
         fireEmployerListChanged()
     }
@@ -149,7 +149,7 @@ class VacancyManager : DisposableBean {
             val url = this.httpVacancyService!!.getRequestVacancyDescriptionUrl(id)
             fireVacancyDescriptionRequestStart(url)
             val description = this.httpVacancyService.requestVacancyDescription(url)
-            vacancy.description = description
+            vacancy.description = description ?: ""
             fireVacancyDescriptionRequestFinish()
         }
     }
@@ -183,11 +183,11 @@ class VacancyManager : DisposableBean {
         this.threadPool.submit {
             val vacancies = ArrayList<Vacancy>()
             var currentPage = 0
-            var total = 0
-            var vacanciesToLoad = 0
+            var total : Int
+            var vacanciesToLoad : Int
             fireVacancySearchProgress(0)
             val bannedEmployers = this.employers.values.stream() //
-                .filter(Predicate<Employer> { it.isBanned }) //
+                .filter { it.isBanned } //
                 .map { it.id } //
                 .collect(Collectors.toSet())
             do {
@@ -199,7 +199,7 @@ class VacancyManager : DisposableBean {
                 val result = this.httpVacancyService.requestVacancies(url)
                 vacancies.addAll(cacheVacancies(result!!.vacancies))
                 total = result.total
-                vacanciesToLoad = Math.min(total, VACANCY_COUNT_THRESHOLD)
+                vacanciesToLoad = min(total, VACANCY_COUNT_THRESHOLD)
                 currentPage++
                 fireVacancySearchProgress(((vacancies.size + 0.0) / vacanciesToLoad * 100).toInt())
             } while (vacancies.size < vacanciesToLoad)
@@ -227,12 +227,11 @@ class VacancyManager : DisposableBean {
         }
     }
 
-    fun getEmployers(): List<Employer> {
-        return this.employers.values.stream() //
+    fun getEmployers(): List<Employer> =
+        this.employers.values.stream() //
             .sorted(Comparator.comparing { e: Employer -> !e.isBanned } //
-                .thenComparing { e: Employer -> e.name!! })
+                .thenComparing { e: Employer -> e.name })
             .collect(Collectors.toList())
-    }
 
     fun importVacancies(file: File, successAction: Runnable, failAction: Runnable) {
         val success = this.fileVacancyService!!.importVacancies(this.vacancies, file)
@@ -247,16 +246,16 @@ class VacancyManager : DisposableBean {
         val newVacancies = ArrayList<Vacancy>()
         for (rawVacancy in rawVacancies) {
             val rawEmployer = rawVacancy.employer
-            var cachedEmployer: Employer? = this.employers[rawEmployer!!.id]
+            var cachedEmployer: Employer? = this.employers[rawEmployer.id]
             if (cachedEmployer == null) {
-                this.employers[rawEmployer!!.id] = rawEmployer
+                this.employers[rawEmployer.id] = rawEmployer
                 cachedEmployer = rawEmployer
             }
             newVacancies.add(
                 Vacancy(
                     rawVacancy.id, //
-                    rawVacancy.isBanned, //
                     rawVacancy.name, //
+                    rawVacancy.isBanned, //
                     cachedEmployer, //
                     rawVacancy.area, //
                     rawVacancy.snippet, //

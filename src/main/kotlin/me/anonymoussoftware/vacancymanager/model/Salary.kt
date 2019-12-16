@@ -2,13 +2,10 @@ package me.anonymoussoftware.vacancymanager.model
 
 import org.json.JSONObject
 
-class Salary (
-
-    val from: Int = 0,
-    val to: Int = 0,
-    val currency: String? = null,
-    val isGross: Boolean = false
-){
+class Salary (val from: Int,
+              val to: Int,
+              val currency: String,
+              val isGross: Boolean) : Model {
     fun toJson(): JSONObject {
         val result = JSONObject()
         if (this.from != 0) {
@@ -17,7 +14,7 @@ class Salary (
         if (this.to != 0) {
             result.put("to", this.to)
         }
-        if (this.currency != null) {
+        if (this.currency.isNotBlank()) {
             result.put("currency", this.currency)
         }
         result.put("gross", this.isGross)
@@ -36,7 +33,7 @@ class Salary (
             sb.append(this.to)
             sb.append(" ")
         }
-        if (this.currency != null) {
+        if (this.currency.isNotBlank()) {
             sb.append(this.currency)
             sb.append(" ")
         }
@@ -46,18 +43,12 @@ class Salary (
         return sb.toString().trim { it <= ' ' }
     }
 
-    companion object {
-
-        fun fromJson(json: JSONObject?): Salary? {
-            return if (json == null) {
-                null
-            } else Salary(
-                json.optInt("from"),
+    companion object : JsonDeserializer<Salary> {
+        override fun fromJson(json: JSONObject): Salary =
+            Salary(json.optInt("from"),
                 json.optInt("to"),
                 json.optString("currency"),
-                json.optBoolean("gross")
-            )
-        }
+                json.optBoolean("gross"))
     }
 
 }

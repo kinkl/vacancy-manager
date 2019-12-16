@@ -6,9 +6,10 @@ import me.anonymoussoftware.vacancymanager.VacancyManager.VacancyListChangeListe
 import me.anonymoussoftware.vacancymanager.VacancyManager.VacancySearchListener
 import me.anonymoussoftware.vacancymanager.model.Employer
 import me.anonymoussoftware.vacancymanager.model.aggregated.AggregatedVacancy
-
+import java.awt.Color
+import java.awt.Component
+import java.awt.EventQueue
 import javax.swing.*
-import java.awt.*
 
 class VacancyListPanel : JPanel(), VacancyListChangeListener, VacancySearchListener {
 
@@ -30,7 +31,7 @@ class VacancyListPanel : JPanel(), VacancyListChangeListener, VacancySearchListe
         this.vacanciesList = JList(this.vacancyListModel)
         this.vacanciesList.cellRenderer = VacancyCellRenderer()
         this.vacanciesList.selectionMode = ListSelectionModel.SINGLE_SELECTION
-        this.vacanciesList.addListSelectionListener { e ->
+        this.vacanciesList.addListSelectionListener { _ ->
             this.vacancyManager.selectedVacancy = this.vacanciesList.selectedValue
         }
         val vacancyListScrollPane = JScrollPane(this.vacanciesList)
@@ -89,7 +90,7 @@ class VacancyListPanel : JPanel(), VacancyListChangeListener, VacancySearchListe
             } else if (value.vacancy!!.isBanned) {
                 backgroundColor = Color.RED
                 foregroundColor = Color.WHITE
-            } else if (value.vacancy.employer!!.isBanned) {
+            } else if (value.vacancy.employer.isBanned) {
                 backgroundColor = Color.DARK_GRAY
                 foregroundColor = Color.WHITE
             } else if (value.vacancy.salary != null) {
@@ -108,7 +109,7 @@ class VacancyListPanel : JPanel(), VacancyListChangeListener, VacancySearchListe
             }
             text = String.format(
                 "%s [%d] - %s%s", //
-                value.vacancy.employer!!.name, //
+                value.vacancy.employer.name, //
                 value.employerVacancies!!.size, //
                 value.vacancy.name, //
                 salaryInfo
