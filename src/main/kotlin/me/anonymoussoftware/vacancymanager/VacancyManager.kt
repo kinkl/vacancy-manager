@@ -50,7 +50,13 @@ class VacancyManager : DisposableBean {
 
     private val employers = TreeMap<Int, Employer>()
 
-    private val CITIES = LinkedHashMap<String, Int>()
+    private val CITIES = linkedMapOf(
+        "Saint Petersburg" to 2,
+        "Moscow" to 1,
+        "Sochi" to 237,
+        "Krasnodar" to 53,
+        "Chelyabinsk" to 104
+    )
 
     val availableCityNames: Set<String>
         get() = Collections.unmodifiableSet(CITIES.keys)
@@ -73,14 +79,6 @@ class VacancyManager : DisposableBean {
                     .thenComparing { v -> v.vacancy!!.name })
                 .collect(Collectors.toList())
         }
-
-    init {
-        CITIES["Saint Petersburg"] = 2
-        CITIES["Moscow"] = 1
-        CITIES["Sochi"] = 237
-        CITIES["Krasnodar"] = 53
-        CITIES["Chelyabinsk"] = 104
-    }
 
     fun addVacancyListChangeListener(listener: VacancyListChangeListener) {
         this.vacancyChangeListeners.add(listener)

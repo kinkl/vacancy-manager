@@ -16,26 +16,24 @@ class Vacancy(override val id: Int,
         return this.name + " (" + this.employer.name + ")"
     }
 
-    fun toJson(writeEmployerBannedStatus: Boolean): JSONObject {
-        val result = JSONObject()
-        result.put("id", this.id)
-        result.put("isBanned", this.isBanned)
-        result.put("name", this.name)
-        result.put("employer", this.employer.toJson(writeEmployerBannedStatus))
-        result.put("area", this.area.toJson())
-        if (this.snippet != null) {
-            result.put("snippet", this.snippet.toJson())
+    fun toJson(writeEmployerBannedStatus: Boolean) = JSONObject().apply {
+        put("id", id)
+        put("isBanned", isBanned)
+        put("name", name)
+        put("employer", employer.toJson(writeEmployerBannedStatus))
+        put("area", area.toJson())
+        if (snippet != null) {
+            put("snippet", snippet.toJson())
         }
-        if (this.salary != null) {
-            result.put("salary", this.salary.toJson())
+        if (salary != null) {
+            put("salary", salary.toJson())
         }
-        if (this.url.isNotEmpty()) {
-            result.put("alternate_url", this.url)
+        if (url.isNotEmpty()) {
+            put("alternate_url", url)
         }
-        if (this.description != null && this.description!!.isNotEmpty()) {
-            result.put("description", this.description)
+        if (description != null && description!!.isNotEmpty()) {
+            put("description", description)
         }
-        return result
     }
 
     companion object : JsonDeserializer<Vacancy> {
